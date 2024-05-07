@@ -4,18 +4,23 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "TZ=UTC NODE_OPTIONS=\"--experimental-vm-modules --max_old_space_size=4096\" NODE_ENV=test jest --runInBand",
     "start": "tsc && node index.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@babel/preset-env": "^7.24.5",
     "airtable": "^0.12.2",
     "axios": "^1.6.8",
-    "dotenv": "^16.4.5"
+    "babel-jest": "^29.7.0",
+    "dotenv": "^16.4.5",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.1.2"
   },
   "devDependencies": {
+    "@types/jest": "^29.5.12",
     "@types/node": "^20.12.8",
     "typescript": "^5.4.5"
   }
