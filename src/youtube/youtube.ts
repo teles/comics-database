@@ -44,20 +44,23 @@ export const fetchPlaylistItems = async (options: PlaylistItemsOptions): Promise
                 publishedAfter
             });
     
-            console.log(`Fetching page: ${url}`);
+            console.log(`[YOUTUBE] Fetching page: ${url}`);
     
             const response = await axios.get(url);
             const snippets = response.data.items.map((item: Record<'snippet', YouTubeSnippet>) => item.snippet);
+            if(options.callback) {
+                await options.callback(snippets);
+            }
             const nextPageToken = response.data.nextPageToken;
     
             if (nextPageToken) {
-                console.log(`Fetching next page: ${nextPageToken}`);
+                console.log(`[YOUTUBE] Fetching next page: ${nextPageToken}`);
                 await fetchPage(nextPageToken);
             }
             return snippets;
         } catch (error) {
             console.error('Error fetching page:', error);
-            throw error; // Rejeita a promessa com o erro capturado
+            throw error;
         }        
     }; 
     return await fetchPage();

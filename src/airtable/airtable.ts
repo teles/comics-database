@@ -48,7 +48,7 @@ export const insert = async (options: InsertOptions): Promise<Record<string, any
         reject(err)
         return
       }
-      console.log('Record created successfully')
+      console.log('[INSERT] Record created successfully')
       resolve(record)
       })
     }
@@ -88,8 +88,8 @@ export const select = async (options: SelectMethodOptions): Promise<Record<strin
         reject(err)
         return
       }
-      console.log('Records fetched successfully')
-      resolve(records?.map(record => record.fields) || [])
+      console.log('[SELECT] Records fetched successfully')
+      resolve(records?.map(record => ({id: record.id, fields: record.fields})) || [])
       })
     }
   )  
@@ -119,7 +119,7 @@ export const update = async (options: UpdateOptions): Promise<Record<string, any
         reject(err)
         return
       }
-      console.log('Record updated successfully')
+      console.log('[UPDATE] Record updated successfully')
       resolve(record)
       })
     }
@@ -146,10 +146,8 @@ export const upsert = async (options: UpsertOptions): Promise<Record<string, any
   try {
     const records = await select({ tableName, filterByFormula, maxRecords: 1 });
     if (records.length > 0) {
-      console.log('>>> update no upsert')
       return await update({ tableName, recordId: records[0].id, record });
     } else {
-      console.log('>>> insert no upsert')
       return await insert({ tableName, record });
     }
   } catch (error) {
