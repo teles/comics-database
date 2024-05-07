@@ -1,7 +1,7 @@
 # YouTube/AirTable integration
 
 ## Introduction
-This project aims to integrate YouTube with AirTable, allowing users to automatically sync YouTube video data to an AirTable database. This can be useful for managing and analyzing YouTube video metrics, such as views, likes, and comments.
+This project aims to integrate YouTube with AirTable, allowing users to automatically sync YouTube video data to an AirTable database. This can be useful for managing and analyzing YouTube video metrics
 
 ## Installation
 To use this integration, follow these steps:
