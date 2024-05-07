@@ -19,7 +19,7 @@ To use this integration, follow these steps:
     Replace `your_api_key` with your AirTable API key and `your_base_id` with the ID of your AirTable base.
 4. Run the integration script by executing the following command:
     ```
-    npm run sync
+    npm run start
     ```
     This will start syncing the YouTube video data to your AirTable database.
 
