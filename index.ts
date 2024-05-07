@@ -17,7 +17,7 @@ const upsertVideos = async (snippets: YouTubeSnippet[]): Promise<void> => {
     }
 }
 
-const main = async () : Promise<void> => {
+const getNewestWideosFromChannel = async () : Promise<void> => {
     const newest = await select(
         {
             tableName: 'videos',
@@ -27,7 +27,7 @@ const main = async () : Promise<void> => {
         }
     )
     const newestVideoPublishedAt = newest[0] ? newest[0].fields['Published At'] : undefined
-    console.log('Newest video published at:', newestVideoPublishedAt)
+
     await fetchPlaylistItems({
         callback: upsertVideos,
         publishedAfter: newestVideoPublishedAt,
@@ -35,4 +35,4 @@ const main = async () : Promise<void> => {
     })
 }
 
-main()
+getNewestWideosFromChannel()
