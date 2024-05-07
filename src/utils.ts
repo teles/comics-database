@@ -10,3 +10,13 @@ export const paramsToUrl = (url: string, params: Record<string, string | undefin
     const queryString = new URLSearchParams(validParams.map(([key, value]) => [key, value as string])).toString()
     return `${url}?${queryString}`
 }
+
+/**
+ * Normalizes a price string to a number.
+ *
+ * @param price - The price string to be normalized.
+ * @returns The normalized price as a number.
+ */
+export const normalizePrice = (price: string): number => {
+    return Number(price.replace('R$', '').replace(',', '.').trim())
+}
