@@ -23,9 +23,6 @@ To use this integration, follow these steps:
     ```
     This will start syncing the YouTube video data to your AirTable database.
 
-## Configuration
-You can customize the integration by modifying the `config.js` file in the project's root directory. This file contains various settings, such as the YouTube channel ID to sync, the AirTable table name, and the fields to populate in the AirTable records.
-
 ## Usage
 Once the integration is set up and running, it will automatically sync the YouTube video data to your AirTable database. You can view and analyze the data in AirTable, and use it for various purposes, such as generating reports or tracking video performance over time.
 
