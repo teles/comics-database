@@ -1,6 +1,19 @@
 import axios from 'axios';
-import { ComicData } from './types';
+import { ComicData, ComicScraper } from './types';
 import { Comix } from './scrapers/comix';
+import { removeNonAscii } from '../utils';
+
+interface ScraperHandler {
+    pattern: RegExp
+    handler: ComicScraper
+}
+
+const handlers: ScraperHandler[] = [
+    {
+        pattern: /^https:\/\/www\.comix\.com.br\//,
+        handler: new Comix()
+    }
+]
 
 async function scrapeComicsData(url: string): Promise<ComicData> {
     try {
@@ -10,8 +23,15 @@ async function scrapeComicsData(url: string): Promise<ComicData> {
             }
         });
 
-        const scraper = new Comix();
-        return await scraper.scrape(url, response.data);
+        const scraperHandler: ScraperHandler | undefined = handlers.find((item) => {
+            return url.match(item.pattern)
+        })
+
+        if(!scraperHandler) {
+            throw `Handler not found for ${url}`
+        }
+
+        return await scraperHandler.handler.scrape(url, removeNonAscii(response.data))
 
     } catch (error) {
         console.error('Scraping error:', error);
@@ -19,7 +39,7 @@ async function scrapeComicsData(url: string): Promise<ComicData> {
     }
 }
 
-const comicUrl = 'https://www.comix.com.br/gata-de-ferro.html';
+const comicUrl = 'https://www.comix.com.br/miles-morales-homem-aranha-2023-vol-2.html';
 
 scrapeComicsData(comicUrl)
     .then(data => {

@@ -20,3 +20,7 @@ export const paramsToUrl = (url: string, params: Record<string, string | undefin
 export const normalizePrice = (price: string): number => {
     return Number(price.replace('R$', '').replace(',', '.').trim())
 }
+
+export const removeNonAscii = (text: string) : string => {
+    return text.replace(/[^\x00-\x7F]/g, '')
+}

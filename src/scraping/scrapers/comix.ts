@@ -1,6 +1,6 @@
-import { load } from "cheerio";
-import { ComicData, ComicScraper } from "../types";
-import { normalizePrice } from "../../utils";
+import { load } from 'cheerio';
+import { ComicData, ComicScraper } from '../types';
+import { normalizePrice, removeNonAscii } from '../../utils';
 
 /**
  * Represents a scraper for the Comix website.
@@ -14,10 +14,12 @@ export class Comix implements ComicScraper {
             const isbn13 = $('.description.product li:contains("ISBN-13")').first().text().trim();
             const title = $('h1.page-title').text().trim();
             const price = normalizePrice($('.special-price .price').text().trim());
+            const pages = $('.description.product li:contains("páginas")').first().text().trim();
             const oldPrice = normalizePrice($('.old-price .price').text().trim());
             const synopsis = $('.product.attribute.description p').first().text().trim();
             const imageUrl = $('img.gallery-placeholder__image').attr('src');
             const isAvailable = $('.stock.available').length > 0
+
             return {
                 title,
                 publisher: publisher.replace(/.*?:([^;]*);.*/, '$1').trim(),
@@ -27,9 +29,10 @@ export class Comix implements ComicScraper {
                     oldPrice,
                     isAvailable
                 },
+                pages: Number(pages.match(/\d+/)?.slice(0, 1)) || undefined,
                 synopsis,
-                isbn: isbn?.split(':')[1].trim(),
-                isbn13: isbn13?.split(':')[1].trim(),
+                isbn: removeNonAscii(isbn?.split(':')[1]).trim(),
+                isbn13: removeNonAscii(isbn13?.split(':')[1]).trim(),
                 imageUrl,
                 lastSuccessfulUpdateAt: new Date()
             };
