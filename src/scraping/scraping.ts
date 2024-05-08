@@ -15,7 +15,7 @@ const handlers: ScraperHandler[] = [
     }
 ]
 
-async function scrapeComicsData(url: string): Promise<ComicData> {
+export async function scrapeComicsData(url: string): Promise<ComicData> {
     try {
         const response = await axios.get(url, {
             headers: {
@@ -23,28 +23,18 @@ async function scrapeComicsData(url: string): Promise<ComicData> {
             }
         });
 
-        const scraperHandler: ScraperHandler | undefined = handlers.find((item) => {
+        const scraper: ScraperHandler | undefined = handlers.find((item) => {
             return url.match(item.pattern)
         })
 
-        if(!scraperHandler) {
+        if(!scraper) {
             throw `Handler not found for ${url}`
         }
 
-        return await scraperHandler.handler.scrape(url, removeNonAscii(response.data))
+        return await scraper.handler.scrape(url, removeNonAscii(response.data))
 
     } catch (error) {
         console.error('Scraping error:', error);
         throw error;
     }
 }
-
-const comicUrl = 'https://www.comix.com.br/miles-morales-homem-aranha-2023-vol-2.html';
-
-scrapeComicsData(comicUrl)
-    .then(data => {
-        console.log('Comic data:', data);
-    })
-    .catch(error => {
-        console.error('Error:', error);
-    });

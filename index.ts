@@ -1,6 +1,7 @@
 import { upsert, select } from './src/airtable/airtable'
 import { fetchPlaylistItems } from './src/youtube/youtube'
 import { YouTubeSnippet } from './src/youtube/types'
+import { scrapeComicsData } from './src/scraping/scraping'
 
 const upsertVideos = async (snippets: YouTubeSnippet[]): Promise<void> => {
     for (const snippet of snippets) {
@@ -35,4 +36,30 @@ const getNewestWideosFromChannel = async () : Promise<void> => {
     })
 }
 
-getNewestWideosFromChannel()
+// getNewestWideosFromChannel()
+
+scrapeComicsData('https://comicboom.com.br/produto/homem-aranha-por-david-michelinie-e-erik-larsen-marvel-omnibus/')
+    .then(async data => {
+        await upsert(
+            {
+                tableName: 'quadrinhos',
+                filterByFormula: `{url} = "${data.url}"`,
+                record: {
+                    Title: data.title,
+                    Publisher: data.publisher,
+                    Price: data.offer.price,
+                    'Old Price': data.offer.oldPrice,
+                    Available: data.offer.isAvailable,
+                    Image: data.imageUrl,
+                    'Last Update': data.lastSuccessfulUpdateAt,
+                    ISBN: data.isbn,
+                    ISBN13: data.isbn13,
+                    Synopsis: data.synopsis,
+                    url: data.url
+                }
+            }
+        )
+    })
+    .catch(error => {
+        console.error('Error:', error);
+    });

@@ -8,7 +8,8 @@ if (!process.env.AIRTABLE_TOKEN) {
 }
 
 interface AirtableTables {
-  videos: Airtable.Table<FieldSet>
+  videos: Airtable.Table<FieldSet>,
+  quadrinhos: Airtable.Table<FieldSet>
 }
 
 Airtable.configure({
@@ -23,7 +24,8 @@ export const getAirtableTables = (): AirtableTables => {
   const airtableDatabase = Airtable.base(process.env.AIRTABLE_DATABASE_ID)
   
   return {
-    videos: airtableDatabase('Videos')
+    videos: airtableDatabase('Videos'),
+    quadrinhos: airtableDatabase('Quadrinhos')
   }
 }
 
