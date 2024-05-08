@@ -38,7 +38,7 @@ const getNewestWideosFromChannel = async () : Promise<void> => {
 
 // getNewestWideosFromChannel()
 
-scrapeComicsData('https://comicboom.com.br/produto/nausicaa-do-vale-do-vento-vol-3/')
+scrapeComicsData('https://panini.com.br/tom-strong-edicao-definitiva-vol-1')
     .then(async data => {
         console.log(data)
         await upsert(

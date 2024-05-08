@@ -3,6 +3,7 @@ import { removeNonAscii } from '../utils';
 import { ComicData, ComicScraper } from './types';
 import { Comix } from './scrapers/comix';
 import { ComicBoom } from './scrapers/comicboom';
+import { Panini } from './scrapers/panini';
 
 interface ScraperHandler {
     pattern: RegExp
@@ -17,6 +18,10 @@ const handlers: ScraperHandler[] = [
     {
         pattern: /^https:\/\/comicboom\.com\.br\//,
         handler: new ComicBoom()
+    },
+    {
+        pattern: /^https:\/\/panini\.com\.br\//,
+        handler: new Panini()    
     }
 ]
 
