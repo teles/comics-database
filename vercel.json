@@ -1,0 +1,8 @@
+{
+    "functions": {
+      "api": {
+        "handler": "src/api/api.js"
+      }
+    }
+}
+  

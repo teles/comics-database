@@ -72,8 +72,18 @@ async function upsertComicsByUrl(request: FastifyRequest, reply: FastifyReply): 
     }
 }
 
+/**
+ * Handles incoming requests.
+ *
+ * @param req - The Fastify request object.
+ * @param res - The Fastify reply object.
+ */
 export default async function handler(req: FastifyRequest, res: FastifyReply) {
-    app.log.info(`Server running on ${app.server.address()}`);
-    await app.ready();
-    app.server.emit('request', req, res);
+    try {
+        await app.ready();
+        app.server.emit('request', req, res);
+    } catch (error) {
+        console.error('Erro ao processar solicitação:', error);
+        res.code(500).send({ error: 'Erro interno do servidor' });
+    }
 }
