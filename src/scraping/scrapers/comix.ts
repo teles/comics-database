@@ -7,25 +7,31 @@ import { normalizePrice } from "../../utils";
  */
 export class Comix implements ComicScraper {
     async scrape(url: string, content: string): Promise<ComicData> {
-        try {
+        try {            
             const $ = load(content);
+            const publisher = $('.description.product li:contains("Editora")').first().text().trim();
+            const isbn = $('.description.product li:contains("ISBN-10")').first().text().trim();
+            const isbn13 = $('.description.product li:contains("ISBN-13")').first().text().trim();
             const title = $('h1.page-title').text().trim();
-            const publisher = $('div.info-produto a:contains("Editora")').text().trim();
             const price = normalizePrice($('.special-price .price').text().trim());
+            const oldPrice = normalizePrice($('.old-price .price').text().trim());
             const synopsis = $('.product.attribute.description p').first().text().trim();
             const imageUrl = $('img.gallery-placeholder__image').attr('src');
-
+            const isAvailable = $('.stock.available').length > 0
             return {
                 title,
-                publisher,
+                publisher: publisher.replace(/.*?:([^;]*);.*/, '$1').trim(),
                 url,
                 offer: {
                     price,
-                    isAvailable: true
+                    oldPrice,
+                    isAvailable
                 },
                 synopsis,
+                isbn: isbn?.split(':')[1].trim(),
+                isbn13: isbn13?.split(':')[1].trim(),
                 imageUrl,
-                lastSuccessfulUpdate: new Date()
+                lastSuccessfulUpdateAt: new Date()
             };
         } catch (error) {
             console.error('Scraping error:', error);

@@ -1,7 +1,7 @@
 export interface ProductOffer {
     price: number;
     isAvailable?: boolean;
-    oldPrice?: string;
+    oldPrice?: number;
 }
 
 export interface ComicData {
@@ -14,7 +14,7 @@ export interface ComicData {
     pages?: number;
     isbn?: string;
     isbn13?: string;
-    lastSuccessfulUpdate: Date;
+    lastSuccessfulUpdateAt: Date;
 }
 
 /**
