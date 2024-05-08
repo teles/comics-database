@@ -21,6 +21,12 @@ export const normalizePrice = (price: string): number => {
     return Number(price.replace('R$', '').replace(',', '.').trim())
 }
 
+/**
+ * Removes non-ASCII characters from a string.
+ *
+ * @param text - The text to be cleaned.
+ * @returns The text with non-ASCII characters removed.
+ */
 export const removeNonAscii = (text: string) : string => {
-    return text.replace(/[^\x00-\x7F]/g, '')
+    return text.replace(/\u00A0/, '')
 }

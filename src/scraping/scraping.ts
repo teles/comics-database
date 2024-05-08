@@ -1,7 +1,8 @@
 import axios from 'axios';
+import { removeNonAscii } from '../utils';
 import { ComicData, ComicScraper } from './types';
 import { Comix } from './scrapers/comix';
-import { removeNonAscii } from '../utils';
+import { ComicBoom } from './scrapers/comicboom';
 
 interface ScraperHandler {
     pattern: RegExp
@@ -12,6 +13,10 @@ const handlers: ScraperHandler[] = [
     {
         pattern: /^https:\/\/www\.comix\.com.br\//,
         handler: new Comix()
+    },
+    {
+        pattern: /^https:\/\/comicboom\.com\.br\//,
+        handler: new ComicBoom()
     }
 ]
 

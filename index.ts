@@ -38,8 +38,9 @@ const getNewestWideosFromChannel = async () : Promise<void> => {
 
 // getNewestWideosFromChannel()
 
-scrapeComicsData('https://comicboom.com.br/produto/homem-aranha-por-david-michelinie-e-erik-larsen-marvel-omnibus/')
+scrapeComicsData('https://comicboom.com.br/produto/nausicaa-do-vale-do-vento-vol-3/')
     .then(async data => {
+        console.log(data)
         await upsert(
             {
                 tableName: 'quadrinhos',
