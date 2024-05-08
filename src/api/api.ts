@@ -72,13 +72,8 @@ async function upsertComicsByUrl(request: FastifyRequest, reply: FastifyReply): 
     }
 }
 
-const start = async () => {
-    try {
-        await app.listen(3000);
-        app.log.info(`Server running on ${app.server.address()}`);
-    } catch (err) {
-        app.log.error(err);
-        process.exit(1);
-    }
-};
-start();
+export default async function handler(req: FastifyRequest, res: FastifyReply) {
+    app.log.info(`Server running on ${app.server.address()}`);
+    await app.ready();
+    app.server.emit('request', req, res);
+}
