@@ -12,13 +12,16 @@ export class Panini implements ComicScraper {
             const publisher = 'Panini';
             const isbn13 = '';
             const title = $('h1.page-title').text().trim();
-            const price = $('.special-price .price').text().trim()
+            const price = $('.special-price .price,.price-container .price').first().text().trim()
             const pages = $('[data-th="Quantidade de páginas"]').first().text().trim();
             const oldPrice = $('.old-price .price').text().trim()
             const synopsis = $('.product.overview').first().text().trim();
             const imageUrl = $('meta[property="og:image"]').attr('content');
             const isAvailable = $('#product-addtocart-button').length > 0
-
+            console.log({
+                oldPrice,
+                price
+            })
             return {
                 title,
                 publisher: publisher.replace(/.*?:([^;]*);.*/, '$1').trim(),
