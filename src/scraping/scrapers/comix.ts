@@ -32,7 +32,7 @@ export class Comix implements ComicScraper {
                 pages: Number(pages.match(/\d+/)?.slice(0, 1)) || undefined,
                 synopsis,
                 isbn: removeNonAscii(isbn?.split(':')[1]).trim(),
-                isbn13: removeNonAscii(isbn13?.split(':')[1]).trim(),
+                isbn13: removeNonAscii(isbn13.replace('-', '')?.split(':')[1]).trim(),
                 imageUrl,
                 lastSuccessfulUpdateAt: new Date()
             };
