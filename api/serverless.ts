@@ -97,24 +97,27 @@ async function upsertComicsByUrl(request: FastifyRequest, reply: FastifyReply): 
 //  * @param req - The Fastify request object.
 //  * @param res - The Fastify reply object.
 //  */
-// export default async function handler(req: FastifyRequest, res: FastifyReply) {
-//     console.log('Server running on', app.server.address());
-//     try {
-//         await app.ready();
-//         app.server.emit('request', req, res);
-//     } catch (error) {
-//         console.error('Erro ao processar solicitação:', error);
-//         res.code(500).send({ error: 'Erro interno do servidor' });
-//     }
-// }
+export default async function handler(req: FastifyRequest, res: FastifyReply) {
+    console.log('Server running on', app.server.address());
+    try {
+        await app.ready();
+        app.server.emit('request', req, res);
+        app.log.info(`Server running on ${app.server.address()}`);
+    } catch (error) {
+        console.error('Error starting server', error);
+        res.code(500).send({ error: 'Error starting server' });
+    }
+}
 
 const start = async () => {
     try {
-        await app.listen(3000);
+        await app.ready();
+        await app.listen(3000);        
         app.log.info(`Server running on ${app.server.address()}`);
     } catch (err) {
         app.log.error(err);
         process.exit(1);
     }
 };
+
 start();
