@@ -25,7 +25,8 @@ jobs:
               run: npm run test
               env:
                 AIRTABLE_TOKEN: ${{ secrets.AIRTABLE_TOKEN }}
-                AIRTABLE_DATABASE_ID: ${{ secrets.AIRTABLE_DATABASE_ID }}              
+                AIRTABLE_DATABASE_ID: ${{ secrets.AIRTABLE_DATABASE_ID }}
+                VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}              
 
             - name: Deploy to Vercel
               run: npm run deploy
