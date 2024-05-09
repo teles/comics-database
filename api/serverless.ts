@@ -7,10 +7,10 @@ const app: FastifyInstance = fastify({ logger: true });
 app.get('/', async (request: FastifyRequest, reply: FastifyReply) => {
     const html = `<html>
         <head>
-            <title>Comics API</title>
+            <title>Comics Database API</title>
         </head>
         <body>
-            <h1>Comics API</h1>
+            <h1>Comics Database API</h1>
             <p>API to retrieve comics data</p>
             <p>Endpoints:</p>
             <ul>
