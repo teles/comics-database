@@ -10,7 +10,7 @@
     "build": "tsc",
     "example:scrape:panini": "tsc && node scripts/scrapePanini.js",
     "example:scrape:comix": "tsc && node scripts/scrapeComix.js",
-    "deploy": "vercel --prod --confirm"
+    "deploy": "vercel --prod --yes"
   },
   "keywords": [],
   "author": "",
