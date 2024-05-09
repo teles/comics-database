@@ -1,5 +1,7 @@
+import { SortParameter } from 'airtable/lib/query_params';
 import { upsert, update, select } from './airtable';
 import * as airtable from './airtable';
+import { FieldSet } from 'airtable';
 
 describe('upsert', () => {
   it('should update an existing record if it matches the filter', async () => {
@@ -71,8 +73,8 @@ describe('select', () => {
   it('should retrieve records from the specified table', async () => {
     const tableName = 'videos';
     const filterByFormula = '{title} = "Example Video"';
-    const sort = [{ field: 'views', direction: 'desc' }] as any;
     const maxRecords = 10;
+    const sort = [{ field: 'views', direction: 'desc' }] as SortParameter<FieldSet>[];
 
     // Mock the select function to return an array of records
     jest.spyOn(airtable, 'select').mockResolvedValueOnce([
