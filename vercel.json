@@ -1,8 +1,1 @@
-{
-    "functions": {
-      "api": {
-        "handler": "src/api/api.js"
-      }
-    }
-}
-  
+{ "builds": [ { "src": "api/api.ts", "use": "@vercel/node" } ] }
