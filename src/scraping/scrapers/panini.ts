@@ -18,10 +18,6 @@ export class Panini implements ComicScraper {
             const synopsis = $('.product.overview').first().text().trim();
             const imageUrl = $('meta[property="og:image"]').attr('content');
             const isAvailable = $('#product-addtocart-button').length > 0
-            console.log({
-                oldPrice,
-                price
-            })
             return {
                 title,
                 publisher: publisher.replace(/.*?:([^;]*);.*/, '$1').trim(),

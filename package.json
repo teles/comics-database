@@ -7,7 +7,9 @@
     "test": "TZ=UTC NODE_OPTIONS=\"--experimental-vm-modules --max_old_space_size=4096\" NODE_ENV=test jest --runInBand",
     "start": "tsc && node index.js",
     "scraping": "tsc && node src/scraping/scraping.js",
-    "build": "tsc && node src/api/api.js --output public"
+    "build": "tsc && node src/api/api.js --output public",
+    "example:scrape:panini": "tsc && node scripts/scrapePanini.js",
+    "example:scrape:comix": "tsc && node scripts/scrapeComix.js"
   },
   "keywords": [],
   "author": "",
