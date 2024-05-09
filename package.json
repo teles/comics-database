@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "TZ=UTC NODE_OPTIONS=\"--experimental-vm-modules --max_old_space_size=4096\" NODE_ENV=test jest --runInBand",
+    "test": "jest",
     "start": "tsc && node api/serverless.js",
     "scraping": "tsc && node src/scraping/scraping.js",
     "build": "tsc",
