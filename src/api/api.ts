@@ -4,6 +4,23 @@ import { scrapeComicsData } from '../scraping/scraping';
 
 const app: FastifyInstance = fastify({ logger: true });
 
+app.get('/', async (request: FastifyRequest, reply: FastifyReply) => {
+    const html = `<html>
+        <head>
+            <title>Comics API</title>
+        </head>
+        <body>
+            <h1>Comics API</h1>
+            <p>API to retrieve comics data</p>
+            <p>Endpoints:</p>
+            <ul>
+                <li>GET /api/comics/:isbn13 - Retrieves comics by ISBN13</li>
+                <li>PUT /api/comics/upsert/:url - Upserts comics data into the database based on the provided URL</li>
+            </ul>
+        </body>
+    </html>`;
+    return reply.status(200).type('text/html').send(html)
+})
 app.get('/api/comics/:isbn13', getComicsByISBN13);
 app.put('/api/comics/upsert/:url', upsertComicsByUrl);
 
@@ -72,18 +89,32 @@ async function upsertComicsByUrl(request: FastifyRequest, reply: FastifyReply): 
     }
 }
 
-/**
- * Handles incoming requests.
- *
- * @param req - The Fastify request object.
- * @param res - The Fastify reply object.
- */
-export default async function handler(req: FastifyRequest, res: FastifyReply) {
+
+
+// /**
+//  * Handles incoming requests.
+//  *
+//  * @param req - The Fastify request object.
+//  * @param res - The Fastify reply object.
+//  */
+// export default async function handler(req: FastifyRequest, res: FastifyReply) {
+//     console.log('Server running on', app.server.address());
+//     try {
+//         await app.ready();
+//         app.server.emit('request', req, res);
+//     } catch (error) {
+//         console.error('Erro ao processar solicitação:', error);
+//         res.code(500).send({ error: 'Erro interno do servidor' });
+//     }
+// }
+
+const start = async () => {
     try {
-        await app.ready();
-        app.server.emit('request', req, res);
-    } catch (error) {
-        console.error('Erro ao processar solicitação:', error);
-        res.code(500).send({ error: 'Erro interno do servidor' });
+        await app.listen(3000);
+        app.log.info(`Server running on ${app.server.address()}`);
+    } catch (err) {
+        app.log.error(err);
+        process.exit(1);
     }
-}
+};
+start();
