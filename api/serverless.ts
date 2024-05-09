@@ -1,6 +1,6 @@
 import fastify, { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
-import { select, upsert } from '../airtable/airtable';
-import { scrapeComicsData } from '../scraping/scraping';
+import { select, upsert } from '../src/airtable/airtable';
+import { scrapeComicsData } from '../src/scraping/scraping';
 
 const app: FastifyInstance = fastify({ logger: true });
 
