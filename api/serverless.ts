@@ -112,7 +112,7 @@ export default async function handler(req: FastifyRequest, res: FastifyReply) {
 const start = async () => {
     try {
         await app.ready();
-        await app.listen(3000);        
+        app.listen({ port: 3000 });
         app.log.info(`Server running on ${app.server.address()}`);
     } catch (err) {
         app.log.error(err);
