@@ -74,7 +74,54 @@ async function upsertComicsByUrl(request: FastifyRequest, reply: FastifyReply): 
  * @param done - The callback function to be called when the routes are created.
  */
 export const createComicsRoutes: FastifyPluginCallback = (fastify, _options, done) => {
-    fastify.get('/:isbn13', getComicsByISBN13);
+    fastify.get('/:isbn13', {
+        schema: {
+            tags: ['Comics'],
+            description: 'Get comics by ISBN13',
+            params: {
+                type: 'object',
+                properties: {
+                    isbn13: { type: 'string', description: 'The ISBN13 of the comic' }
+                }
+            },
+            response: {
+                200: {
+                    description: 'Successful response',
+                    type: 'array',
+                    items: {
+                        type: 'object',
+                        properties: {
+                            Title: { type: 'string' },
+                            Publisher: { type: 'string' },
+                            Price: { type: 'number' },
+                            'Old Price': { type: 'number' },
+                            Available: { type: 'boolean' },
+                            Image: { type: 'string' },
+                            'Last Update': { type: 'string' },
+                            ISBN: { type: 'string' },
+                            ISBN13: { type: 'string' },
+                            Synopsis: { type: 'string' },
+                            url: { type: 'string' }
+                        }
+                    }
+                },
+                404: {
+                    description: 'Comics not found',
+                    type: 'object',
+                    properties: {
+                        error: { type: 'string' }
+                    }
+                },
+                500: {
+                    description: 'Error response',
+                    type: 'object',
+                    properties: {
+                        error: { type: 'string' }
+                    }
+                }
+            }
+        }
+    }, getComicsByISBN13);    
     fastify.put('/upsert/:url', {
         schema: {
             tags: ['Comics'],
