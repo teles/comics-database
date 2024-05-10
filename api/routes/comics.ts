@@ -1,12 +1,6 @@
-import fastify, { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
-import { select, upsert } from '../src/airtable/airtable';
-import { scrapeComicsData } from '../src/scraping/scraping';
-
-const app: FastifyInstance = fastify({ logger: true });
-
-app.get('/api/comics/:isbn13', getComicsByISBN13);
-app.put('/api/comics/upsert/:url', upsertComicsByUrl);
-
+import { FastifyPluginCallback, FastifyReply, FastifyRequest } from "fastify";
+import { scrapeComicsData } from "../../src/scraping/scraping";
+import { select, upsert } from "../../src/airtable/airtable";
 /**
  * Retrieves comics by ISBN13.
  *
@@ -72,35 +66,52 @@ async function upsertComicsByUrl(request: FastifyRequest, reply: FastifyReply): 
     }
 }
 
-
-
-// /**
-//  * Handles incoming requests.
-//  *
-//  * @param req - The Fastify request object.
-//  * @param res - The Fastify reply object.
-//  */
-export default async function handler(req: FastifyRequest, res: FastifyReply) {
-    console.log('Server running on', app.server.address());
-    try {
-        await app.ready();
-        app.server.emit('request', req, res);
-        app.log.info(`Server running on ${app.server.address()}`);
-    } catch (error) {
-        console.error('Error starting server', error);
-        res.code(500).send({ error: 'Error starting server' });
-    }
+/**
+ * Creates the routes for handling comics in the API.
+ *
+ * @param fastify - The Fastify instance.
+ * @param _options - The options object.
+ * @param done - The callback function to be called when the routes are created.
+ */
+export const createComicsRoutes: FastifyPluginCallback = (fastify, _options, done) => {
+    fastify.get('/:isbn13', getComicsByISBN13);
+    fastify.put('/upsert/:url', {
+        schema: {
+            tags: ['Comics'],
+            description: 'Upsert a comic by URL',
+            params: {
+                type: 'object',
+                properties: {
+                    url: { type: 'string', description: 'The URL of the comic' }
+                }
+            },
+            response: {
+                200: {
+                    description: 'Successful response',
+                    type: 'object',
+                    properties: {
+                        Title: { type: 'string' },
+                        Publisher: { type: 'string' },
+                        Price: { type: 'number' },
+                        'Old Price': { type: 'number' },
+                        Available: { type: 'boolean' },
+                        Image: { type: 'string' },
+                        'Last Update': { type: 'string' },
+                        ISBN: { type: 'string' },
+                        ISBN13: { type: 'string' },
+                        Synopsis: { type: 'string' },
+                        url: { type: 'string' }
+                    }
+                },
+                500: {
+                    description: 'Error response',
+                    type: 'object',
+                    properties: {
+                        error: { type: 'string' }
+                    }
+                }
+            }
+        }
+    }, upsertComicsByUrl);
+    done();
 }
-
-const start = async () => {
-    try {
-        await app.ready();
-        app.listen({ port: 3000 });
-        app.log.info(`Server running on ${app.server.address()}`);
-    } catch (err) {
-        app.log.error(err);
-        process.exit(1);
-    }
-};
-
-start();
