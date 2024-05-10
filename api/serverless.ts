@@ -4,23 +4,6 @@ import { scrapeComicsData } from '../src/scraping/scraping';
 
 const app: FastifyInstance = fastify({ logger: true });
 
-app.get('/', async (request: FastifyRequest, reply: FastifyReply) => {
-    const html = `<html>
-        <head>
-            <title>Comics Database API</title>
-        </head>
-        <body>
-            <h1>Comics Database API</h1>
-            <p>API to retrieve comics data</p>
-            <p>Endpoints:</p>
-            <ul>
-                <li>GET /api/comics/:isbn13 - Retrieves comics by ISBN13</li>
-                <li>PUT /api/comics/upsert/:url - Upserts comics data into the database based on the provided URL</li>
-            </ul>
-        </body>
-    </html>`;
-    return reply.status(200).type('text/html').send(html)
-})
 app.get('/api/comics/:isbn13', getComicsByISBN13);
 app.put('/api/comics/upsert/:url', upsertComicsByUrl);
 
