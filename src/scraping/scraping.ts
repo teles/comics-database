@@ -5,25 +5,17 @@ import { Comix } from './scrapers/comix';
 import { ComicBoom } from './scrapers/comicboom';
 import { Panini } from './scrapers/panini';
 
-interface ScraperHandler {
-    pattern: RegExp
-    handler: ComicScraper
+enum ScrapableSites {
+    comix = 'www.comix.com.br',
+    comicboom = 'comicboom.com.br',
+    panini = 'panini.com.br'
 }
 
-const handlers: ScraperHandler[] = [
-    {
-        pattern: /^https:\/\/www\.comix\.com.br\//,
-        handler: new Comix()
-    },
-    {
-        pattern: /^https:\/\/comicboom\.com\.br\//,
-        handler: new ComicBoom()
-    },
-    {
-        pattern: /^https:\/\/panini\.com\.br\//,
-        handler: new Panini()    
-    }
-]
+const handlers: Record<ScrapableSites, ComicScraper> = {
+    [ScrapableSites.comix]: new Comix(),
+    [ScrapableSites.comicboom]: new ComicBoom(),
+    [ScrapableSites.panini]: new Panini()
+}
 
 export async function scrapeComicsData(url: string): Promise<ComicData> {
     try {
@@ -33,15 +25,14 @@ export async function scrapeComicsData(url: string): Promise<ComicData> {
             }
         });
 
-        const scraper: ScraperHandler | undefined = handlers.find((item) => {
-            return url.match(item.pattern)
-        })
+        const hostname = new URL(url).hostname;
+        const scraper = handlers[hostname as ScrapableSites];
 
         if(!scraper) {
             throw `Handler not found for ${url}`
         }
 
-        return await scraper.handler.scrape(url, removeNonAscii(response.data))
+        return await scraper.scrape(url, removeNonAscii(response.data))
 
     } catch (error) {
         console.error('Scraping error:', error);
