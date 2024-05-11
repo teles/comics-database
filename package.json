@@ -6,10 +6,8 @@
   "scripts": {
     "test": "jest",
     "start": "tsc && node api/server.js",
-    "scraping": "tsc && node src/scraping/scraping.js",
+    "scrape:url": "tsc && node scripts/scrapeUrl.js",
     "build": "tsc",
-    "example:scrape:panini": "tsc && node scripts/scrapePanini.js",
-    "example:scrape:comix": "tsc && node scripts/scrapeComix.js",
     "deploy": "vercel --prod --token $VERCEL_TOKEN --yes"
   },
   "keywords": [],

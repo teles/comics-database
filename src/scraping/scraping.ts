@@ -5,7 +5,7 @@ import { Comix } from './scrapers/comix';
 import { ComicBoom } from './scrapers/comicboom';
 import { Panini } from './scrapers/panini';
 
-enum ScrapableSites {
+export enum ScrapableSites {
     comix = 'www.comix.com.br',
     comicboom = 'comicboom.com.br',
     panini = 'panini.com.br'
