@@ -26,6 +26,12 @@ To use this integration, follow these steps:
 ## Usage
 Once the integration is set up and running, it will automatically sync the YouTube video data to your AirTable database. You can view and analyze the data in AirTable, and use it for various purposes, such as generating reports or tracking video performance over time.
 
+To run the script with a specific URL, use the following command:
+    ```
+    npm run script:url <your_url>
+    ```
+Replace `<your_url>` with the URL of the YouTube video you want to sync.
+
 ## Contributing
 Contributions are welcome! If you have any ideas, suggestions, or bug reports, please open an issue or submit a pull request on GitHub.
 
