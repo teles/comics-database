@@ -3,7 +3,7 @@ import dotenv from 'dotenv'
 dotenv.config()
 
 if (!process.env.AIRTABLE_TOKEN) {
-  console.error('Missing AIRTABLE_TOKEN env variable')
+  console.error('Missing AIRTABLE_TOKEN env variable') // eslint-disable-line no-console
   process.exit(1)
 }
 
@@ -19,7 +19,7 @@ Airtable.configure({
 
 export const getAirtableTables = (): AirtableTables => {
   if(!process.env.AIRTABLE_DATABASE_ID) {
-    throw new Error('Missing AIRTABLE_DATABASE_ID env variable');
+    throw new Error('Missing AIRTABLE_DATABASE_ID env variable')
   }
   const airtableDatabase = Airtable.base(process.env.AIRTABLE_DATABASE_ID)
   
@@ -50,10 +50,10 @@ export const insert = async (options: InsertOptions): Promise<Record<string, any
         reject(err)
         return
       }
-      console.log('[INSERT] Record created successfully')
+      console.log('[INSERT] Record created successfully') // eslint-disable-line no-console
       resolve(record)
-      })
-    }
+    })
+  }
   )  
 }
 
@@ -79,10 +79,10 @@ export const select = async (options: SelectMethodOptions): Promise<Record<strin
   const table = tables[tableName]
   const params: SelectOptions<Airtable.FieldSet> = { filterByFormula }
   if (sort) {
-    params.sort = sort;
+    params.sort = sort
   }
   if (maxRecords) {
-    params.maxRecords = maxRecords;
+    params.maxRecords = maxRecords
   }
   return await new Promise((resolve, reject) => {
     table.select({...params}).firstPage(function (err: Airtable.Error | undefined, records: Airtable.Records<FieldSet> | undefined) {
@@ -90,10 +90,10 @@ export const select = async (options: SelectMethodOptions): Promise<Record<strin
         reject(err)
         return
       }
-      console.log('[SELECT] Records fetched successfully')
+      console.log('[SELECT] Records fetched successfully') // eslint-disable-line no-console
       resolve(records?.map(record => ({id: record.id, fields: record.fields})) || [])
-      })
-    }
+    })
+  }
   )  
 }
 
@@ -121,10 +121,10 @@ export const update = async (options: UpdateOptions): Promise<Record<string, any
         reject(err)
         return
       }
-      console.log('[UPDATE] Record updated successfully')
+      console.log('[UPDATE] Record updated successfully') // eslint-disable-line no-console
       resolve(record)
-      })
-    }
+    })
+  }
   )
 }
 
@@ -144,15 +144,11 @@ interface UpsertOptions {
   record: Record<string, any>
 }
 export const upsert = async (options: UpsertOptions): Promise<Record<string, any>> => {
-  const { tableName, filterByFormula, record } = options;
-  try {
-    const records = await select({ tableName, filterByFormula, maxRecords: 1 });
-    if (records.length > 0) {
-      return await update({ tableName, recordId: records[0].id, record });
-    } else {
-      return await insert({ tableName, record });
-    }
-  } catch (error) {
-    throw error;
+  const { tableName, filterByFormula, record } = options
+  const records = await select({ tableName, filterByFormula, maxRecords: 1 })
+  if (records.length > 0) {
+    return await update({ tableName, recordId: records[0].id, record })
+  } else {
+    return await insert({ tableName, record })
   }
-};
+}

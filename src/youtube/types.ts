@@ -11,8 +11,15 @@ export interface YouTubeSnippet {
       }
     }
     pageInfo?: {
-        totalResults: number
+      totalResults: number
     }
 }
   
 export type YouTubeCallback = (snippets: YouTubeSnippet[]) => Promise<void>;
+
+export interface YouTubeSnippetResponse {
+  items: {
+    snippet: YouTubeSnippet
+  }[]
+  nextPageToken?: string
+}

@@ -27,5 +27,5 @@ export interface ComicScraper {
      * @param content - The HTML content of the comic page.
      * @returns A promise that resolves to the scraped comic data.
      */
-    scrape(url: string, content: string): Promise<ComicData>;
+    scrape: (url: string, content: string) => ComicData;
 }

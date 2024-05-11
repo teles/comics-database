@@ -6,9 +6,9 @@
  */
 
 export const paramsToUrl = (url: string, params: Record<string, string | undefined>) => {
-    const validParams = Object.entries(params).filter(([_, value]) => value !== undefined)
-    const queryString = new URLSearchParams(validParams.map(([key, value]) => [key, value as string])).toString()
-    return `${url}?${queryString}`
+  const validParams = Object.entries(params).filter(([_, value]) => value !== undefined)
+  const queryString = new URLSearchParams(validParams.map(([key, value]) => [key, value as string])).toString()
+  return `${url}?${queryString}`
 }
 
 /**
@@ -18,7 +18,7 @@ export const paramsToUrl = (url: string, params: Record<string, string | undefin
  * @returns The normalized price as a number.
  */
 export const normalizePrice = (price: string): number => {
-    return Number(price.replace('R$', '').replace(',', '.').trim())
+  return Number(price.replace('R$', '').replace(',', '.').trim())
 }
 
 /**
@@ -28,5 +28,5 @@ export const normalizePrice = (price: string): number => {
  * @returns The text with non-ASCII characters removed.
  */
 export const removeNonAscii = (text: string) : string => {
-    return text.replace(/\u00A0/, '')
+  return text.replace(/\u00A0/, '')
 }
