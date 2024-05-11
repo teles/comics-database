@@ -1,5 +1,6 @@
 import { FastifyPluginCallback, FastifyReply, FastifyRequest } from 'fastify'
 import { scrapeComicsData } from '../../src/scraping/scraping'
+import { type JSONSchema } from 'json-schema-to-ts'
 import { select, upsert } from '../../src/airtable/airtable'
 /**
  * Retrieves comics by ISBN13.
@@ -29,6 +30,24 @@ async function getComicsByISBN13(request: FastifyRequest, reply: FastifyReply): 
     request.log.error('Server error searching comics', error)
     await reply.code(500).send({ error: 'Server error searching comics' })
   }
+}
+const comicProperties = {
+  Title: { type: 'string' },
+  Publisher: { type: 'string' },
+  Price: { type: 'number' },
+  'Old Price': { type: 'number' },
+  Available: { type: 'boolean' },
+  Image: { type: 'string' },
+  'Last Update': { type: 'string' },
+  ISBN: { type: 'string' },
+  ISBN13: { type: 'string' },
+  Synopsis: { type: 'string' },
+  url: { type: 'string' }
+} as const 
+
+const comicSchema: JSONSchema = {
+  type: 'object',
+  properties: comicProperties
 }
 
 /**
@@ -83,29 +102,18 @@ export const createComicsRoutes: FastifyPluginCallback = (fastify, _options, don
       params: {
         type: 'object',
         properties: {
-          isbn13: { type: 'string', description: 'The ISBN13 of the comic' }
+          isbn13: { 
+            type: 'string', 
+            description: 'Comic book ISBN13 number',
+            pattern: '^[0-9]{13}$'
+          }
         }
       },
       response: {
         200: {
           description: 'Successful response',
           type: 'array',
-          items: {
-            type: 'object',
-            properties: {
-              Title: { type: 'string' },
-              Publisher: { type: 'string' },
-              Price: { type: 'number' },
-              'Old Price': { type: 'number' },
-              Available: { type: 'boolean' },
-              Image: { type: 'string' },
-              'Last Update': { type: 'string' },
-              ISBN: { type: 'string' },
-              ISBN13: { type: 'string' },
-              Synopsis: { type: 'string' },
-              url: { type: 'string' }
-            }
-          }
+          items: comicSchema
         },
         404: {
           description: 'Comics not found',
@@ -137,20 +145,8 @@ export const createComicsRoutes: FastifyPluginCallback = (fastify, _options, don
       response: {
         200: {
           description: 'Successful response',
-          type: 'object',
-          properties: {
-            Title: { type: 'string' },
-            Publisher: { type: 'string' },
-            Price: { type: 'number' },
-            'Old Price': { type: 'number' },
-            Available: { type: 'boolean' },
-            Image: { type: 'string' },
-            'Last Update': { type: 'string' },
-            ISBN: { type: 'string' },
-            ISBN13: { type: 'string' },
-            Synopsis: { type: 'string' },
-            url: { type: 'string' }
-          }
+          type: comicSchema['type'],
+          properties: comicSchema['properties']
         },
         500: {
           description: 'Error response',

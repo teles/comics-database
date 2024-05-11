@@ -11,7 +11,7 @@
     "deploy": "vercel --prod --token $VERCEL_TOKEN --yes",
     "lint": "eslint .",
     "lint:files": "eslint",
-    "lint:fix": "npx eslint . --fix"    
+    "lint:fix": "npx eslint . --fix"
   },
   "keywords": [],
   "author": "",
@@ -37,6 +37,7 @@
     "eslint": "^8.57.0",
     "eslint-config-standard-with-typescript": "^43.0.1",
     "fastify-swagger": "^5.2.0",
+    "json-schema-to-ts": "^3.1.0",
     "typescript": "^5.4.5",
     "vercel": "^34.1.9"
   }
