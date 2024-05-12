@@ -161,7 +161,11 @@ export const createComicsRoutes: FastifyPluginCallback = (fastify, _options, don
       params: {
         type: 'object',
         properties: {
-          url: { type: 'string', description: 'The URL of the comic' }
+          url: { 
+            type: 'string', 
+            description: 'The URL of the comic',
+            format: 'uri'
+          }
         }
       },
       response: {
