@@ -73,7 +73,7 @@ interface SelectMethodOptions {
   maxRecords?: SelectOptions<Airtable.FieldSet>['maxRecords']
 }
 
-export const select = async (options: SelectMethodOptions): Promise<Record<string, any>[]> => {
+export const select = async (options: SelectMethodOptions): Promise<{id: string, fields: Airtable.FieldSet}[]> => {
   const { tableName, filterByFormula, sort, maxRecords } = options
   const tables =  getAirtableTables()
   const table = tables[tableName]
@@ -91,7 +91,8 @@ export const select = async (options: SelectMethodOptions): Promise<Record<strin
         return
       }
       console.log('[SELECT] Records fetched successfully') // eslint-disable-line no-console
-      resolve(records?.map(record => ({id: record.id, fields: record.fields})) || [])
+      const updateRecords = records?.map(record => ({id: record.id, fields: record.fields}))
+      resolve(updateRecords ?? [])
     })
   }
   )  
