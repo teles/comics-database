@@ -14,6 +14,18 @@ export interface ComicData {
     pages?: number;
     isbn?: string;
     isbn13?: string;
+    weight?: string;
+    dimensions?: string;
+    categories?: string[]; 
+    tags?: string[];
+    seriesType?: string[];
+    coverType?: string[];
+    color?: string[];
+    authors?: string[];
+    formats?: string[];    
+    languages?: string[];
+    numberInSeries?: string;
+    year?: number;
     lastSuccessfulUpdateAt: Date;
 }
 
