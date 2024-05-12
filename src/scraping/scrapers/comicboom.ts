@@ -9,15 +9,17 @@ export class ComicBoom implements ComicScraper {
   scrape(url: string, content: string): ComicData {
     try {
       const $ = load(content)
+      const isAvailable = $('.stock.in-stock').length > 0
       const publisher = $('a[id^="editor"]').first().text().trim()
       const isbn13 = $('.shop_attributes tr:contains("ISBN")').first().text().trim()
       const title = $('h1.product-title').text().trim()
-      const price = $('.product-info ins .woocommerce-Price-amount.amount').text().trim()
+      const price = isAvailable 
+        ? $('.product-info ins .woocommerce-Price-amount.amount').first().text().trim() 
+        : $('.price-wrapper .woocommerce-Price-amount.amount').first().text().trim()
       const pages = $('.shop_attributes tr:contains("Páginas")').first().text().trim()
       const oldPrice = $('.product-info del .woocommerce-Price-amount.amount').text().trim()
       const synopsis = $('#bookDescription_feature_div').first().text().trim()
-      const imageUrl = $('img.wp-post-image').attr('src')
-      const isAvailable = $('.stock.in-stock').length > 0
+      const imageUrl = $('img.wp-post-image').attr('src')      
 
       return {
         title,
