@@ -1,4 +1,5 @@
 import { parseStringPromise } from 'xml2js'
+import axios from 'axios'
 
 interface SitemapXml {
   sitemapindex: {
@@ -18,7 +19,7 @@ export async function extractUrlsFromSitemap(sitemapXml: string): Promise<string
     return []
   }
   const { sitemapindex: { sitemap } }: SitemapXml = await parseStringPromise(sitemapXml)
-  return sitemap.map(({ loc }) => loc)
+  return sitemap.map(({ loc }) => loc[0])
 }
 
 interface URLSet {
@@ -38,7 +39,7 @@ export async function extractUrlsFromURLSet(urlSetXml: string): Promise<string[]
     return []
   }
   const { urlset: { url } }: URLSet = await parseStringPromise(urlSetXml)
-  return url.map(({ loc }) => loc)
+  return url.map(({ loc }) => loc[0])
 }
 
 /**
@@ -48,6 +49,6 @@ export async function extractUrlsFromURLSet(urlSetXml: string): Promise<string[]
  * @returns A promise that resolves to the XML content as a string.
  */
 export async function getXMLContent(url: string): Promise<string> {
-  const response = await fetch(url)
-  return response.text()
+  const content: string = await axios.get(url).then((response: {data: string}) => response.data)
+  return content
 }
