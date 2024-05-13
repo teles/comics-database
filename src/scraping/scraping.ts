@@ -17,14 +17,14 @@ const handlers: Record<ScrapableSites, ComicScraper> = {
   [ScrapableSites.panini]: new Panini()
 }
 
-export async function scrapeComicsData(url: string): Promise<ComicData> {
+export async function scrapeComicsData(url: string, headers?: Record<'Cookie', string>): Promise<ComicData> {
   try {
     const response: {data: string} = await axios.get(url, {
       headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/99.0.9999.999 Safari/537.36'
-      }
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+        'Cookie': headers?.Cookie || ''
+      }      
     })
-
     const hostname = new URL(url).hostname
     const scraper = handlers[hostname as ScrapableSites]
 

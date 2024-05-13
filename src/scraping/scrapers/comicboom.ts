@@ -64,7 +64,6 @@ export class ComicBoom implements ComicScraper {
       const languages = details.idioma
       const numberInSeries = details['número']
       const year = details.ano      
-      
       return {
         title,
         publisher: publisher?.[0] || '',
