@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "jest",
+    "test": "tsc && jest",
     "start": "tsc && node api/server.js",
     "scrape:url": "tsc && node scripts/scrapeUrl.js",
     "build": "tsc",

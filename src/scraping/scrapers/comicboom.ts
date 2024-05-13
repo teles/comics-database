@@ -32,14 +32,14 @@ export class ComicBoom implements ComicScraper {
       const $ = load(content)
       const isAvailable = $('.stock.in-stock').length > 0
       const details: ComicBoomDetails = $('.shop_attributes tr').get().reduce((acc, element) => {
-        const th = $(element).find('th').text()
-        const td = $(element).find('td').text()
+        const th = $(element).find('th').first().text()
+        const td = $(element).find('td').first().text()
         const isListOfAnchors = $(element).find('a').length > 0
         return {
           ...acc,
           [`${th.replace(/:/, '').toLowerCase().trim()}`]: isListOfAnchors
-            ? $(element).find('a').map((_i, el) => $(el).text()).get()
-            : td
+            ? $(element).find('a').map((_i, el) => $(el).text().trim()).get()
+            : td.trim()
         }
       }, {}) as ComicBoomDetails
       const publisher = details.editora
@@ -64,7 +64,7 @@ export class ComicBoom implements ComicScraper {
       const languages = details.idioma
       const numberInSeries = details['número']
       const year = details.ano      
-
+      
       return {
         title,
         publisher: publisher?.[0] || '',
@@ -87,7 +87,7 @@ export class ComicBoom implements ComicScraper {
         formats,
         languages,
         numberInSeries,
-        year: year ? Number(year) : undefined,
+        year: isNaN(Number(year)) ? undefined : Number(year),
         imageUrl,
         lastSuccessfulUpdateAt: new Date()
       }
