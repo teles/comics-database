@@ -1,7 +1,7 @@
 import readline from 'readline'
 import * as Bluebird from 'bluebird'
-import { extractUrlsFromURLSet, getXMLContent } from '@/scraping/sitemapXmlParser'
-import { scrapeComicsData } from '@/scraping/scraping'
+import { extractUrlsFromURLSet, getXMLContent } from '../src/scraping/sitemapXmlParser'
+import { scrapeComicsData } from '../src/scraping/scraping'
 
 function parseSitemapXml() {
   const rl = readline.createInterface({
