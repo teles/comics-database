@@ -1,3 +1,6 @@
+import { setupSentry } from '../src/lib/sentry'
+setupSentry()
+
 import readline from 'readline'
 import { ComicData } from '../src/scraping/types'
 import { crawlComicBoom } from '../src/crawlers/comicboom'
@@ -9,7 +12,7 @@ function parseSitemapXml() {
   })
 
   const options = ['ComicBoom', 'Comix']
-  rl.question('Qual sitemap XML você deseja analisar? (Digite o número correspondente)\n1. ComicBoom\n2. Comix\n', async (answer) => {
+  rl.question('Qual sitemap XML você deseja analisar? (Digite o número correspondente)\n1. ComicBoom', async (answer) => {
     const selectedOption = options[parseInt(answer) - 1]
     if (selectedOption === 'ComicBoom') {
       await crawlComicBoom((data: ComicData) => {
