@@ -1,7 +1,4 @@
 import readline from 'readline'
-import * as Bluebird from 'bluebird'
-import { extractUrlsFromSitemap, extractUrlsFromURLSet, getXMLContent } from '../src/scraping/sitemapXmlParser'
-import { scrapeComicsData } from '../src/scraping/scraping'
 import { ComicData } from '../src/scraping/types'
 import { crawlComicBoom } from '../src/crawlers/comicboom'
 

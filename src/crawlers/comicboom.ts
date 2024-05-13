@@ -3,7 +3,7 @@ import { scrapeComicsData } from '../scraping/scraping'
 import { getXMLContent, extractUrlsFromSitemap, extractUrlsFromURLSet } from '../scraping/sitemapXmlParser'
 import { ComicData } from '../scraping/types'
   
-export const crawlComicBoom = async (callback: CallableFunction, concurrency: number) => {
+export const crawlComicBoom = async (callback: CallableFunction, concurrency: number): Promise<void> => {
   const sitemapContent = await getXMLContent('https://comicboom.com.br/wp-sitemap.xml')
   console.log('Parsing ComicBoom sitemap XML...') // eslint-disable-line no-console
   const urls: string[] = await extractUrlsFromSitemap(sitemapContent)
