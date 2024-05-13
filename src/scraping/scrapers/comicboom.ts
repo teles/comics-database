@@ -1,6 +1,6 @@
-import { ComicData, ComicScraper } from '../types'
+import { ComicData, ComicScraper } from '@/scraping/types'
 import { load } from 'cheerio'
-import { normalizePrice } from '../../utils'
+import { normalizePrice } from '@/utils'
 
 /**
  * Represents the details of a comic book from ComicBoom.
@@ -50,7 +50,7 @@ export class ComicBoom implements ComicScraper {
         : $('.price-wrapper .woocommerce-Price-amount.amount').first().text().trim()
       const pages = details['páginas']
       const oldPrice = $('.product-info del .woocommerce-Price-amount.amount').text().trim()
-      const synopsis = $('#bookDescription_feature_div').first().text().trim()
+      const synopsis = $('#bookDescription_feature_div,.product-short-description').first().text().trim()
       const imageUrl = $('img.wp-post-image').attr('src')
       const weight = details.peso
       const dimensions = details['dimensões']

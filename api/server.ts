@@ -1,7 +1,7 @@
 import fastify, { FastifyInstance, type FastifyReply, FastifyRequest } from 'fastify'
 import fastifySwagger from '@fastify/swagger'
 import swaggerui from '@fastify/swagger-ui'
-import { createComicsRoutes } from './routes/comics'
+import { createComicsRoutes } from '@/routes/comics'
 
 const app: FastifyInstance = fastify({ logger: true })
 void app.register(fastifySwagger, {})
