@@ -14,7 +14,7 @@ export const crawlComicBoom = async (callback: CallableFunction, concurrency: nu
     const productUrls: string[] = await extractUrlsFromURLSet(content)
     await Bluebird.Promise.map<string, ComicData>(productUrls, async (url: string) => {
       const data = await scrapeComicsData(url, {
-        'Cookie': 'sucuri_cloudproxy_uuid_ccf5b6b71=9adac5b08f944c72171063d21bdabd54'
+        'Cookie': 'sucuri_cloudproxy_uuid_ccf5b6b71=aee5823510417d8ed5bf6504c1677766'
       })
       callback(data)
       return data

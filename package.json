@@ -12,7 +12,8 @@
     "deploy": "vercel --prod --token $VERCEL_TOKEN --yes",
     "lint": "eslint .",
     "lint:files": "eslint",
-    "lint:fix": "npx eslint . --fix"
+    "lint:fix": "npx eslint . --fix",
+    "cookie": "tsc && node scripts/getCookie.js"
   },
   "keywords": [],
   "author": "",
@@ -28,6 +29,7 @@
     "dotenv": "^16.4.5",
     "fastify": "^4.27.0",
     "jest": "^29.7.0",
+    "puppeteer": "^22.8.1",
     "ts-jest": "^29.1.2",
     "xml2js": "^0.6.2"
   },
@@ -37,6 +39,7 @@
     "@types/bluebird": "^3.5.42",
     "@types/jest": "^29.5.12",
     "@types/node": "^20.12.8",
+    "@types/puppeteer": "^7.0.4",
     "@types/xml2js": "^0.4.14",
     "@typescript-eslint/eslint-plugin": "^6.21.0",
     "@typescript-eslint/parser": "^6.21.0",
