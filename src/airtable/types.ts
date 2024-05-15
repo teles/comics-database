@@ -44,5 +44,6 @@ export interface AirtableFieldsScraping extends FieldSet {
     status: ScrapingStatus
     startedAt: string
     completedAt?: string
+    count?: number
     error?: string
 }
