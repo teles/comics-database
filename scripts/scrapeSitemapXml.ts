@@ -13,7 +13,7 @@ function parseSitemapXml() {
   })
 
   const options = ['ComicBoom', 'Comix']
-  rl.question('Qual sitemap XML você deseja analisar? (Digite o número correspondente)\n1. ComicBoom', async (answer) => {
+  rl.question('Qual sitemap XML você deseja analisar? (Digite o número correspondente)\n1. ComicBoom\n', async (answer) => {
     const selectedOption = options[parseInt(answer) - 1]
     if (selectedOption === 'ComicBoom') {
       await crawlComicBoom((data: ComicData) => {
