@@ -1,5 +1,6 @@
 import Airtable, { FieldSet, SelectOptions } from 'airtable'
 import dotenv from 'dotenv'
+import { off } from 'process'
 dotenv.config()
 
 if (!process.env.AIRTABLE_TOKEN) {
@@ -25,7 +26,7 @@ export const getAirtableTables = (): AirtableTables => {
   
   return {
     videos: airtableDatabase('Videos'),
-    quadrinhos: airtableDatabase('Quadrinhos')
+    quadrinhos: airtableDatabase('QnS')
   }
 }
 
@@ -55,6 +56,38 @@ export const insert = async (options: InsertOptions): Promise<Record<string, any
     })
   }
   )  
+}
+
+interface ListAllMethodOptions {
+  tableName: keyof AirtableTables,
+  sort?: SelectOptions<Airtable.FieldSet>['sort'],
+  pageSize?: SelectOptions<Airtable.FieldSet>['pageSize'],
+  offset?: SelectOptions<Airtable.FieldSet>['offset'],
+}
+
+export const listAll = async (options: ListAllMethodOptions): Promise<{id: string, fields: Airtable.FieldSet}[]> => {
+  const {tableName, pageSize = 10, offset = 0} = options
+
+  const tables =  getAirtableTables()
+  const table = tables[tableName]
+
+  const params: SelectOptions<Airtable.FieldSet> = {
+    pageSize: Number(pageSize),
+    offset: Number(offset),
+  }
+
+  return await new Promise((resolve, reject) => {
+    table.select({...params}).firstPage(function (err: Airtable.Error | undefined, records: Airtable.Records<FieldSet> | undefined) {
+      if (err != null) {
+        reject(err)
+        return
+      }
+      console.log('[SELECT] Records fetched successfully') // eslint-disable-line no-console
+      const updateRecords = records?.map(record => ({id: record.id, fields: record.fields}))
+      resolve(updateRecords ?? [])
+    })
+  }
+  )
 }
 
 /**

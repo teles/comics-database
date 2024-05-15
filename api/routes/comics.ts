@@ -1,8 +1,42 @@
 import { FastifyPluginCallback, FastifyReply, FastifyRequest } from 'fastify'
 import { scrapeComicsData } from '../../src/scraping/scraping'
 import { type JSONSchema } from 'json-schema-to-ts'
-import { select, upsert } from '../../src/airtable/airtable'
+import { select, upsert, listAll } from '../../src/airtable/airtable'
 import { AirtableFieldsComic } from '../../src/airtable/types'
+
+async function listAllComics(request: FastifyRequest, reply: FastifyReply): Promise<void> {
+  try {
+    const pageSize = (request.query as { pageSize: number }).pageSize
+    const offset = (request.query as { offset: number }).offset
+
+    const comics = await listAll(
+      {
+        tableName: 'quadrinhos',
+        'pageSize': pageSize,
+        'offset': offset
+      }
+    ) as {id: string, fields: AirtableFieldsComic}[]
+
+    if (comics.length === 0) {
+      await reply.code(404).send({ error: `Comics not found` })
+      return
+    }
+
+    await reply.send(comics.map((comic => {
+      return {
+        title: comic.fields.Title,
+        url: comic.fields.url        
+      }
+    })))
+  } catch (error) {
+    request.log.error('Server error searching comics', error)
+    console.log("Error")
+    console.log(error)
+    await reply.code(500).send({ error: 'Server error searching comics' })
+  }
+  
+}
+
 /**
  * Retrieves comics by ISBN13.
  *
@@ -154,6 +188,37 @@ export const createComicsRoutes: FastifyPluginCallback = (fastify, _options, don
       }
     }
   }, getComicsByISBN13)    
+  fastify.get('/all', {
+    schema: {
+      tags: ['Comics'],
+      description: 'List all Comics',
+      querystring: {
+        pageSize: { type: 'string' },
+        offset: { type: 'string' }
+      },
+      response: {
+        200: {
+          description: 'Successful response',
+          type: 'array',
+          items: comicSchema
+        },
+        404: {
+          description: 'Comics not found',
+          type: 'object',
+          properties: {
+            error: { type: 'string' }
+          }
+        },
+        500: {
+          description: 'Error response',
+          type: 'object',
+          properties: {
+            error: { type: 'string' }
+          }
+        }
+      }
+    }
+  }, listAllComics)    
   fastify.put('/upsert/:url', {
     schema: {
       tags: ['Comics'],
