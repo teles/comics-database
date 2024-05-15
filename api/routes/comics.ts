@@ -122,17 +122,28 @@ async function upsertComicsByUrl(request: FastifyRequest, reply: FastifyReply): 
         tableName: 'quadrinhos',
         filterByFormula: `{url} = "${data.url}"`,
         record: {
-          Title: data.title,
-          Publisher: data.publisher,
-          Price: data.offer.price,
-          'Old Price': data.offer.oldPrice,
-          Available: data.offer.isAvailable,
-          Image: data.imageUrl,
-          'Last Update': data.lastSuccessfulUpdateAt,
+          url,
+          title: data.title,
+          synopsis: data.synopsis,
+          price: data.offer.price,
+          oldPrice: data.offer.oldPrice,
+          lastUpdate: data.lastSuccessfulUpdateAt,
           ISBN: data.isbn,
           ISBN13: data.isbn13,
-          Synopsis: data.synopsis,
-          url: data.url
+          available: data.offer.isAvailable,
+          coverImage: data.imageUrl,
+          publisher: data.publisher,
+          weight: data.weight,
+          dimensions: data.dimensions,
+          categories: data.categories,
+          tags: data.tags,
+          seriesType: data.seriesType,
+          color: data.color,
+          authors: data.authors,
+          formats: data.formats,
+          languages: data.languages,
+          numberInSeries: data.numberInSeries,
+          year: data.year                    
         }
       }
     )

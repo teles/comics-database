@@ -11,6 +11,9 @@ if (!process.env.AIRTABLE_TOKEN) {
 interface AirtableTables {
   videos: Airtable.Table<FieldSet>,
   quadrinhos: Airtable.Table<FieldSet>
+  comix: Airtable.Table<FieldSet>
+  comicboom: Airtable.Table<FieldSet>
+  scraping: Airtable.Table<FieldSet>
 }
 
 Airtable.configure({
@@ -26,7 +29,10 @@ export const getAirtableTables = (): AirtableTables => {
   
   return {
     videos: airtableDatabase('Videos'),
-    quadrinhos: airtableDatabase('QnS')
+    quadrinhos: airtableDatabase('Quadrinhos'),
+    comix: airtableDatabase('Comix'),
+    comicboom: airtableDatabase('ComicBoom'),
+    scraping: airtableDatabase('Scraping')
   }
 }
 
