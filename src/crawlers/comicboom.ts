@@ -1,7 +1,6 @@
 import Bluebird from 'bluebird'
 import { scrapeComicsData } from '../scraping/scraping'
 import { getXMLContent, extractUrlsFromSitemap, extractUrlsFromURLSet } from '../scraping/sitemapXmlParser'
-import { ComicData } from '../scraping/types'
 import { insert, select, update } from '../airtable/airtable'
 import { ScrapingStatus, ScrapableSitesNames, AirtableFieldsScraping } from '../airtable/types'
 import { FieldSet } from 'airtable'
