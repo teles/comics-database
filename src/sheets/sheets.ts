@@ -12,10 +12,10 @@ const indexToColumn = (index: number): SheetColumn => {
 }
 
 const auth = new JWT(
-    credentials.client_email as string, 
-    undefined, 
-    credentials.private_key as string, 
-    ['https://www.googleapis.com/auth/spreadsheets']
+  credentials.client_email, 
+  undefined, 
+  credentials.private_key, 
+  ['https://www.googleapis.com/auth/spreadsheets']
 )
 
 const sheets = google.sheets({ version: 'v4', auth })
@@ -23,11 +23,11 @@ const sheets = google.sheets({ version: 'v4', auth })
 /**
  * Represents the options for inserting data into a sheet.
  */
-interface InsertOptions<TableEnum extends string> {
+interface InsertOptions<TableName extends string> {
     /**
      * The name of the table where the data will be inserted.
      */
-    tableName?: TableEnum;
+    tableName?: TableName;
 
     /**
      * The range where the data will be inserted.
@@ -45,7 +45,7 @@ interface InsertOptions<TableEnum extends string> {
  * @param options - The options for inserting values.
  * @throws Error if the SPREADSHEET_ID environment variable is missing.
  */
-export async function write<TableEnum extends string>(options: InsertOptions<TableEnum>) {
+export async function write<TableName extends string>(options: InsertOptions<TableName>) {
   if(!process.env.SPREADSHEET_ID) {
     throw new Error('Missing SPREADSHEET_ID env variable')
   }
@@ -75,7 +75,7 @@ export async function write<TableEnum extends string>(options: InsertOptions<Tab
  * @param options - The options for inserting records.
  * @throws Error if the SPREADSHEET_ID environment variable is missing.
  */
-export async function insert<TableEnum extends string, RecordType extends Record<string, any>>(options: { tableName: TableEnum, records: RecordType[] }) {
+export async function insert<TableName extends string, RecordType extends Record<string, any>>(options: { tableName: TableName, records: RecordType[] }) {
   const { tableName, records } = options
 
   try {
@@ -126,7 +126,7 @@ interface SheetHeaders {
  * @param options.tableName - The name of the table.
  * @returns A promise that resolves to an array of SheetHeaders representing the headers of the table.
  */
-async function getHeaders<TableEnum extends string>(options: {tableName: TableEnum}): Promise<SheetHeaders[]> {
+async function getHeaders<TableName extends string>(options: {tableName: TableName}): Promise<SheetHeaders[]> {
   const { tableName } = options    
   try {
     const response = await sheets.spreadsheets.values.get({
@@ -141,8 +141,8 @@ async function getHeaders<TableEnum extends string>(options: {tableName: TableEn
         { column: indexToColumn(index), name, index }
       ))
     } else {
-        console.log('There are no headers in the sheet.') // eslint-disable-line
-      return [] as SheetHeaders[] // Add the return type as SheetHeaders[]
+      console.log('There are no headers in the sheet.') // eslint-disable-line
+      return []
     }
   } catch (error) {
     console.error(`Error getting headers: ${error}`) // eslint-disable-line
@@ -150,19 +150,96 @@ async function getHeaders<TableEnum extends string>(options: {tableName: TableEn
   }
 }
 
-// enum SheetsTables {
-//     comicboom = 'Comic Boom',
-//     comix = 'Comix',
-//     qns = 'QnS',
-//     scraping = 'Scraping'
-// }
+/**
+ * Combines an array of records with an array of headers to create a new record.
+ * 
+ * @template RecordType - The type of the resulting record.
+ * @param {any[]} records - The array of records.
+ * @param {SheetHeaders[]} headers - The array of headers.
+ * @returns {RecordType} - The combined record.
+ */
+const combine = <RecordType extends Record<string, string|number>>(records: (string|number)[], headers: SheetHeaders[]): RecordType => {
+  return headers.reduce((acc: RecordType, header) => {
+    const headerByIndex = headers.find(h => h.index === header.index)
+    const key = headerByIndex?.name as keyof RecordType
+    acc[key] = records[header.index] as RecordType[keyof RecordType]
+    return acc
+  }, {} as RecordType)
+}
 
-// interface ComicBoomTable {
-//     authors: string
-//     title: string
-//     url: string
-//     price: number
-// }
+type ColumnName<RecordType> = keyof RecordType;
+
+type WhereClause<RecordType> = Partial<{
+  [column in ColumnName<RecordType>]: any;
+}>
+
+/**
+ * Finds the first record in a table that matches the specified conditions.
+ * 
+ * @param options - The options for finding the record.
+ * @param options.tableName - The name of the table to search in.
+ * @param options.where - The conditions to match the record against.
+ * @returns A promise that resolves to an array of values representing the first matching record, or undefined if no record is found.
+ */
+export async function findFirst<TableName extends string, RecordType extends Record<string, any>>(options: { tableName: TableName, where: WhereClause<RecordType> }): Promise<RecordType|undefined>{
+  const { tableName, where } = options
+  const headers = await getHeaders({ tableName })
+  const columns = Object.keys(where) as ColumnName<RecordType>[]
+  const header = headers.find(header => header.name === columns[0])
+  const range = `${tableName}!${header?.column}:${header?.column}`
+  try {    
+    const response = await sheets.spreadsheets.values.get({
+      spreadsheetId: process.env.SPREADSHEET_ID,
+      range
+    })
+    const rowIndex = response.data.values?.findIndex(row => row[0] === where[columns[0]])
+    if(rowIndex === -1 || !rowIndex) {
+      return undefined
+    }
+    const rowRange = `${tableName}!A${rowIndex + 1}:${indexToColumn(headers.length - 1)}${rowIndex + 1}`
+    const rowResponse = await sheets.spreadsheets.values.get({
+      spreadsheetId: process.env.SPREADSHEET_ID,
+      range: rowRange
+    })
+    console.log(rowResponse) // eslint-disable-line
+    if(!rowResponse.data.values) {
+      return undefined
+    }
+    return combine<RecordType>(rowResponse.data.values[0] as (string|number)[], headers)
+  } catch(error) {
+    console.error('Error finding data' + error) // eslint-disable-line
+  }
+}
+
+enum SheetsTables {
+    comicboom = 'Comic Boom',
+    comix = 'Comix',
+    qns = 'QnS',
+    scraping = 'Scraping'
+}
+
+interface ComicBoomTable {
+    authors: string
+    title: string
+    url: string
+    price: number
+}
+
+const main = async () => {
+
+  const hello = await findFirst<SheetsTables.comicboom, ComicBoomTable>(
+    {
+      tableName: SheetsTables.comicboom,
+      where: {
+        title: 'Hello World'
+      }
+    }
+  )
+  console.log(hello) // eslint-disable-line
+
+}
+
+void main()
 
 // void insert<SheetsTables, ComicBoomTable>({
 //   tableName: SheetsTables.comicboom,
