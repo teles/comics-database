@@ -90,21 +90,13 @@ export async function insert<TableName extends string, RecordType extends Record
     const lastLine = response.data.values.length
     const headers = await getHeaders({ tableName })
 
-    const valuesFromRecords = records.map((record: RecordType) => {
-      const valuesForRow: (string | number)[] = []
-      headers.forEach(header => {
-        const isValidType = typeof record[header.name] === 'string' || typeof record[header.name] === 'number'
-        valuesForRow.push(isValidType ? record[header.name] as string|number : '')
-      })
-      return valuesForRow
-    })
+    const valuesFromRecords = records.map(record => decombine(record, headers))
     const range = `A${lastLine + 1}:${indexToColumn(headers.length - 1)}${lastLine + valuesFromRecords.length}`
     await write({
       tableName,
       range,
       values: valuesFromRecords
     })
-    console.log({valuesFromRecords, lastLine, range}) // eslint-disable-line
   } catch (error) {
     console.error(`Error inserting data: ${error}`) // eslint-disable-line
     throw error
@@ -151,6 +143,23 @@ async function getHeaders<TableName extends string>(options: {tableName: TableNa
 }
 
 /**
+ * Deconstructs a record object into an array of values based on the provided headers.
+ * 
+ * @template RecordType - The type of the record object.
+ * @param {RecordType} record - The record object to deconstruct.
+ * @param {SheetHeaders[]} headers - The headers to use for deconstruction.
+ * @returns {(string | number)[]} - An array of deconstructed values.
+ */
+const decombine = <RecordType extends Record<string, string|number>>(record: RecordType, headers: SheetHeaders[]): (string|number)[] => {
+  const valuesForRow: (string | number)[] = []
+  headers.forEach(header => {
+    const isValidType = typeof record[header.name] === 'string' || typeof record[header.name] === 'number'
+    valuesForRow.push(isValidType ? record[header.name] : '')
+  })
+  return valuesForRow
+}
+
+/**
  * Combines an array of records with an array of headers to create a new record.
  * 
  * @template RecordType - The type of the resulting record.
@@ -181,7 +190,7 @@ type WhereClause<RecordType> = Partial<{
  * @param options.where - The conditions to match the record against.
  * @returns A promise that resolves to an array of values representing the first matching record, or undefined if no record is found.
  */
-export async function findFirst<TableName extends string, RecordType extends Record<string, any>>(options: { tableName: TableName, where: WhereClause<RecordType> }): Promise<RecordType|undefined>{
+export async function findFirst<RecordType extends Record<string, any>>(options: { tableName: string, where: WhereClause<RecordType> }): Promise<RecordType|undefined>{
   const { tableName, where } = options
   const headers = await getHeaders({ tableName })
   const columns = Object.keys(where) as ColumnName<RecordType>[]
@@ -201,7 +210,7 @@ export async function findFirst<TableName extends string, RecordType extends Rec
       spreadsheetId: process.env.SPREADSHEET_ID,
       range: rowRange
     })
-    console.log(rowResponse) // eslint-disable-line
+
     if(!rowResponse.data.values) {
       return undefined
     }
@@ -211,23 +220,21 @@ export async function findFirst<TableName extends string, RecordType extends Rec
   }
 }
 
-enum SheetsTables {
+const main = async () => {
+  enum SheetsTables {
     comicboom = 'Comic Boom',
     comix = 'Comix',
     qns = 'QnS',
     scraping = 'Scraping'
-}
+  }
 
-interface ComicBoomTable {
-    authors: string
-    title: string
-    url: string
-    price: number
-}
-
-const main = async () => {
-
-  const hello = await findFirst<SheetsTables.comicboom, ComicBoomTable>(
+  interface ComicBoomTable {
+      authors: string
+      title: string
+      url: string
+      price: number
+  }
+  const hello = await findFirst<ComicBoomTable>(
     {
       tableName: SheetsTables.comicboom,
       where: {
@@ -237,22 +244,22 @@ const main = async () => {
   )
   console.log(hello) // eslint-disable-line
 
+  void insert<SheetsTables, ComicBoomTable>({
+    tableName: SheetsTables.comicboom,
+    records: [{
+      'authors': 'John Doe',
+      'title': 'Hello World',
+      'url': 'https://example.com',
+      'price': 9.99
+    },
+    {
+      'authors': 'Mary Doe',
+      'title': 'Hello Teles Exemplo 2',
+      'url': 'https://example2.com',
+      'price': 0.99
+    }]
+  })
 }
 
 void main()
 
-// void insert<SheetsTables, ComicBoomTable>({
-//   tableName: SheetsTables.comicboom,
-//   records: [{
-//     'authors': 'John Doe',
-//     'title': 'Hello World',
-//     'url': 'https://example.com',
-//     'price': 9.99
-//   },
-//   {
-//     'authors': 'Mary Doe',
-//     'title': 'Hello Teles Exemplo 2',
-//     'url': 'https://example2.com',
-//     'price': 0.99
-//   }]
-// })
