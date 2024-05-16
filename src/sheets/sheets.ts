@@ -220,6 +220,44 @@ export async function findFirst<RecordType extends Record<string, any>>(options:
   }
 }
 
+async function findMany<RecordType extends Record<string, any>>(options: { tableName: string, where: WhereClause<RecordType> }): Promise<RecordType[]> {
+  const { tableName, where } = options
+  const headers = await getHeaders({ tableName })
+  const columns = Object.keys(where) as ColumnName<RecordType>[]
+  const header = headers.find(header => header.name === columns[0])
+  const range = `${tableName}!${header?.column}:${header?.column}`
+  try {
+    const response = await sheets.spreadsheets.values.get({
+      spreadsheetId: process.env.SPREADSHEET_ID,
+      range
+    })
+    const rowIndexes = response.data.values?.reduce((acc: number[], row, index) => {
+      if(row[0] === where[columns[0]]) {
+        acc.push(index)
+      }
+      return acc
+    }, [])
+    if(!rowIndexes || rowIndexes.length === 0) {
+      return []
+    }
+    const rowsRange = rowIndexes.map(index => `${tableName}!A${index + 1}:${indexToColumn(headers.length - 1)}${index + 1}`)
+    const rowsResponse = await Promise.all(rowsRange.map(async rowRange => {
+      const rowResponse = await sheets.spreadsheets.values.get({
+        spreadsheetId: process.env.SPREADSHEET_ID,
+        range: rowRange
+      })
+      return rowResponse.data.values
+    })
+    )
+    return rowsResponse.map(row => {
+      return combine<RecordType>(row ? row[0] as (string|number)[] : [], headers)
+    })
+  } catch(error) {
+    console.error('Error finding data' + error) // eslint-disable-line
+    return []
+  }
+}
+
 const main = async () => {
   enum SheetsTables {
     comicboom = 'Comic Boom',
@@ -234,7 +272,7 @@ const main = async () => {
       url: string
       price: number
   }
-  const hello = await findFirst<ComicBoomTable>(
+  const hello = await findMany<ComicBoomTable>(
     {
       tableName: SheetsTables.comicboom,
       where: {
@@ -244,21 +282,21 @@ const main = async () => {
   )
   console.log(hello) // eslint-disable-line
 
-  void insert<SheetsTables, ComicBoomTable>({
-    tableName: SheetsTables.comicboom,
-    records: [{
-      'authors': 'John Doe',
-      'title': 'Hello World',
-      'url': 'https://example.com',
-      'price': 9.99
-    },
-    {
-      'authors': 'Mary Doe',
-      'title': 'Hello Teles Exemplo 2',
-      'url': 'https://example2.com',
-      'price': 0.99
-    }]
-  })
+  // void insert<SheetsTables, ComicBoomTable>({
+  //   tableName: SheetsTables.comicboom,
+  //   records: [{
+  //     'authors': 'John Doe',
+  //     'title': 'Hello World',
+  //     'url': 'https://example.com',
+  //     'price': 9.99
+  //   },
+  //   {
+  //     'authors': 'Mary Doe',
+  //     'title': 'Hello Teles Exemplo 2',
+  //     'url': 'https://example2.com',
+  //     'price': 0.99
+  //   }]
+  // })
 }
 
 void main()
