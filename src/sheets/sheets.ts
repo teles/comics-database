@@ -45,7 +45,7 @@ interface InsertOptions<TableName extends string> {
  * @param options - The options for inserting values.
  * @throws Error if the SPREADSHEET_ID environment variable is missing.
  */
-export async function write<TableName extends string>(options: InsertOptions<TableName>) {
+async function write<TableName extends string>(options: InsertOptions<TableName>) {
   if(!process.env.SPREADSHEET_ID) {
     throw new Error('Missing SPREADSHEET_ID env variable')
   }
@@ -150,10 +150,10 @@ async function getHeaders<TableName extends string>(options: {tableName: TableNa
  * @param {SheetHeaders[]} headers - The headers to use for deconstruction.
  * @returns {(string | number)[]} - An array of deconstructed values.
  */
-const decombine = <RecordType extends Record<string, string|number>>(record: RecordType, headers: SheetHeaders[]): (string|number)[] => {
-  const valuesForRow: (string | number)[] = []
+const decombine = <RecordType extends Record<string, string>>(record: RecordType, headers: SheetHeaders[]): string[] => {
+  const valuesForRow: string[] = []
   headers.forEach(header => {
-    const isValidType = typeof record[header.name] === 'string' || typeof record[header.name] === 'number'
+    const isValidType = typeof record[header.name] === 'string'
     valuesForRow.push(isValidType ? record[header.name] : '')
   })
   return valuesForRow
@@ -167,7 +167,7 @@ const decombine = <RecordType extends Record<string, string|number>>(record: Rec
  * @param {SheetHeaders[]} headers - The array of headers.
  * @returns {RecordType} - The combined record.
  */
-const combine = <RecordType extends Record<string, string|number>>(records: (string|number)[], headers: SheetHeaders[]): RecordType => {
+const combine = <RecordType extends Record<string, string>>(records: string[], headers: SheetHeaders[]): RecordType => {
   return headers.reduce((acc: RecordType, header) => {
     const headerByIndex = headers.find(h => h.index === header.index)
     const key = headerByIndex?.name as keyof RecordType
@@ -176,11 +176,12 @@ const combine = <RecordType extends Record<string, string|number>>(records: (str
   }, {} as RecordType)
 }
 
-type ColumnName<RecordType> = keyof RecordType;
+interface RowSet<RecordType extends Record<string, string>> {
+  range: string
+  fields: Partial<RecordType>
+}
 
-type WhereClause<RecordType> = Partial<{
-  [column in ColumnName<RecordType>]: any;
-}>
+type WhereClause<RecordType> = Partial<{[column in keyof RecordType]: string}>
 
 /**
  * Finds the first record in a table that matches the specified conditions.
@@ -190,10 +191,10 @@ type WhereClause<RecordType> = Partial<{
  * @param options.where - The conditions to match the record against.
  * @returns A promise that resolves to an array of values representing the first matching record, or undefined if no record is found.
  */
-export async function findFirst<RecordType extends Record<string, any>>(options: { tableName: string, where: WhereClause<RecordType> }): Promise<RecordType|undefined>{
+export async function findFirst<RecordType extends Record<string, any>>(options: { tableName: string, where: WhereClause<RecordType> }): Promise<RowSet<RecordType>|undefined>{
   const { tableName, where } = options
   const headers = await getHeaders({ tableName })
-  const columns = Object.keys(where) as ColumnName<RecordType>[]
+  const columns = Object.keys(where) as (keyof RecordType)[]
   const header = headers.find(header => header.name === columns[0])
   const range = `${tableName}!${header?.column}:${header?.column}`
   try {    
@@ -214,16 +215,25 @@ export async function findFirst<RecordType extends Record<string, any>>(options:
     if(!rowResponse.data.values) {
       return undefined
     }
-    return combine<RecordType>(rowResponse.data.values[0] as (string|number)[], headers)
+    const fields = combine<RecordType>(rowResponse.data.values[0] as string[], headers)
+    return { range: rowRange, fields }
   } catch(error) {
     console.error('Error finding data' + error) // eslint-disable-line
   }
 }
 
-async function findMany<RecordType extends Record<string, any>>(options: { tableName: string, where: WhereClause<RecordType> }): Promise<RecordType[]> {
+/**
+ * Retrieves multiple records from a specified table based on the provided conditions.
+ *
+ * @param options - The options for finding the records.
+ * @param options.tableName - The name of the table to search in.
+ * @param options.where - The conditions to filter the records.
+ * @returns A promise that resolves to an array of matching records.
+ */
+export async function findMany<RecordType extends Record<string, any>>(options: { tableName: string, where: WhereClause<RecordType> }): Promise<RowSet<RecordType>[]> {
   const { tableName, where } = options
   const headers = await getHeaders({ tableName })
-  const columns = Object.keys(where) as ColumnName<RecordType>[]
+  const columns = Object.keys(where) as (keyof RecordType)[]
   const header = headers.find(header => header.name === columns[0])
   const range = `${tableName}!${header?.column}:${header?.column}`
   try {
@@ -246,11 +256,12 @@ async function findMany<RecordType extends Record<string, any>>(options: { table
         spreadsheetId: process.env.SPREADSHEET_ID,
         range: rowRange
       })
-      return rowResponse.data.values
-    })
-    )
-    return rowsResponse.map(row => {
-      return combine<RecordType>(row ? row[0] as (string|number)[] : [], headers)
+      const values = rowResponse.data.values
+      return {range: rowRange, values}
+    }))
+    return rowsResponse.map(({range, values}) => {
+      const fields = combine<RecordType>(values ? values[0] as string[] : [], headers)
+      return { range, fields }
     })
   } catch(error) {
     console.error('Error finding data' + error) // eslint-disable-line
@@ -272,14 +283,17 @@ const main = async () => {
       url: string
       price: number
   }
+
   const hello = await findMany<ComicBoomTable>(
     {
       tableName: SheetsTables.comicboom,
       where: {
-        title: 'Hello World'
+        title: 'Hello World',
+        price: '9.99'
       }
     }
   )
+
   console.log(hello) // eslint-disable-line
 
   // void insert<SheetsTables, ComicBoomTable>({
