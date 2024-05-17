@@ -63,7 +63,7 @@ async function write<TableName extends string>(options: InsertOptions<TableName>
       }
     }
 
-    await sheets.spreadsheets.values.update(request)    
+    await sheets.spreadsheets.values.update(request)      
     console.log(`[INSERT] Row inserted successfully`) // eslint-disable-line
   } catch (error) {
     console.error(`[INSERT] Error: ${error}`) // eslint-disable-line
@@ -75,7 +75,7 @@ async function write<TableName extends string>(options: InsertOptions<TableName>
  * @param options - The options for inserting data.
  * @throws Error if the SPREADSHEET_ID environment variable is missing.
  */
-export async function insert<TableName extends string, RecordType extends Record<string, any>>(options: { table: TableName, data: RecordType[] }) {
+export async function insert<RecordType extends Record<string, any>>(options: { table: string, data: RecordType[] }) {
   const { table, data } = options
 
   try {
@@ -182,27 +182,39 @@ interface RowSet<RecordType extends Record<string, string>> {
 }
 
 type WhereFilter = (value: string) => boolean;
+type WhereFilterKey = keyof typeof whereFilters;
+type WhereConditionAcceptedValues = string | string[] | number;
+type WhereCondition = {
+  [key in WhereFilterKey]?: WhereConditionAcceptedValues;
+};
 
+/**
+ * Object containing various filter functions for querying data.
+ */
 const whereFilters = {
-  contains: (value: string): WhereFilter => (data: string) => data.includes(value),
-  equals: (value: string): WhereFilter => (data: string) => data === value
+  equals: (value: WhereConditionAcceptedValues): WhereFilter => (expected: WhereConditionAcceptedValues): boolean => expected === value,
+  not: (value: WhereConditionAcceptedValues): WhereFilter => (expected: string) => expected !== value,
+  in: (value: WhereConditionAcceptedValues): WhereFilter => (expected: string) => (Array.isArray(value) ? value.includes(expected) : false),
+  notIn: (value: WhereConditionAcceptedValues): WhereFilter => (expected: string) => (Array.isArray(value) ? !value.includes(expected) : false),
+  lt: (value: WhereConditionAcceptedValues): WhereFilter => (expected: string) => typeof value === 'number' && parseFloat(expected) < value,
+  lte: (value: WhereConditionAcceptedValues): WhereFilter => (expected: string) => typeof value === 'number' && parseFloat(expected) <= value,
+  gt: (value: WhereConditionAcceptedValues): WhereFilter => (expected: string) => typeof value === 'number' && parseFloat(expected) > value,
+  gte: (value: WhereConditionAcceptedValues): WhereFilter => (expected: string) => typeof value === 'number' && parseFloat(expected) >= value,
+  contains: (value: WhereConditionAcceptedValues): WhereFilter => (expected: string) => typeof value === 'string' && expected.includes(value),
+  search: (value: WhereConditionAcceptedValues): WhereFilter => (expected: string) => typeof value === 'string' && expected.search(new RegExp(value, 'i')) !== -1,
+  startsWith: (value: WhereConditionAcceptedValues): WhereFilter => (expected: string) => typeof value === 'string' && expected.startsWith(value),
+  endsWith: (value: WhereConditionAcceptedValues): WhereFilter => (expected: string) => typeof value === 'string' && expected.endsWith(value)
 }
 
-const checkWhereFilter = (filters: WhereCondition|string, data: string): boolean => {
-  if(typeof filters === 'string') {
-    filters = {equals: filters}
+const checkWhereFilter = (filters: WhereCondition | string, data: string): boolean => {
+  if (typeof filters === 'string') {
+    filters = { equals: filters }
   }
   return Object.entries(filters).every(([key, expected]) => {
     const filter = whereFilters[key as WhereFilterKey](expected)
     return filter(data)
   })
 }
-
-type WhereFilterKey = keyof typeof whereFilters;
-
-type WhereCondition = {
-  [key in WhereFilterKey]?: string;
-};
 
 type WhereClause<RecordType> = {
   [column in keyof RecordType]?: WhereCondition | string;
@@ -297,6 +309,38 @@ export async function findMany<RecordType extends Record<string, any>>(options: 
   }
 }
 
+export async function updateFirst<RecordType extends Record<string, any>>(options: { table: string, where: WhereClause<RecordType>, data: Partial<RecordType> }) {
+  const { table, where, data } = options
+
+  const record = await findFirst<RecordType>({ table, where })
+
+  if (!record) {
+    throw new Error('No record found to update')
+  }
+
+  const { fields } = record
+  const updatedFields = { ...fields, ...data } as RecordType // Cast updatedFields to RecordType
+  return await insert<RecordType>({ table, data: [updatedFields] })
+}
+
+export async function updateMany<RecordType extends Record<string, any>>(options: { table: string, where: WhereClause<RecordType>, data: Partial<RecordType> }) {
+  const { table, where, data } = options
+
+  const records = await findMany<RecordType>({ table, where })
+
+  if (!records) {
+    throw new Error('No records found to update')
+  }
+
+  const updatedRecords = records.map(record => {
+    const { fields } = record
+    return { ...fields, ...data } as RecordType
+  })
+  console.log(updatedRecords) // eslint-disable-line
+
+  // return await insert<RecordType>({ table, data: updatedRecords })
+}
+
 const main = async () => {
   enum SheetsTables {
     comicboom = 'Comic Boom',
@@ -312,38 +356,51 @@ const main = async () => {
     price: number
   }
 
-  const hello = await findMany<ComicBoomTable>(
-    {
-      table: SheetsTables.comicboom,
-      where: {
-        title: {
-          contains: 'Teles'
-        },
-        price: '9.99'
-      },
-      select: {
-        title: true
-      }
-    }
-  )
-
-  console.log(hello) // eslint-disable-line
-
-  void insert<SheetsTables, ComicBoomTable>({
+  const updated = await updateMany<ComicBoomTable>({
     table: SheetsTables.comicboom,
-    data: [{
-      'authors': 'John Doe',
-      'title': 'Hello World',
-      'url': 'https://example.com',
-      'price': 9.99
+    where: {
+      title: {
+        contains: 'Hello'
+      }
     },
-    {
-      'authors': 'Mary Doe',
-      'title': 'Hello Teles Exemplo 2',
-      'url': 'https://example2.com',
-      'price': 0.99
-    }]
+    data: {
+      price: 1111
+    }
   })
+  console.log(updated) // eslint-disable-line
+  // const hello = await findMany<ComicBoomTable>(
+  //   {
+  //     table: SheetsTables.comicboom,
+  //     where: {
+  //       title: {
+  //         in: ['Hello World', 'Hello Teles Exemplo 2'],
+  //         notIn: ['Hello World']
+  //       },
+  //       price: '9.99'
+  //     },
+  //     select: {
+  //       title: true
+  //     }
+  //   }
+  // )
+
+  // console.log(hello) // eslint-disable-line
+
+  // void insert<SheetsTables, ComicBoomTable>({
+  //   table: SheetsTables.comicboom,
+  //   data: [{
+  //     'authors': 'John Doe',
+  //     'title': 'Hello World',
+  //     'url': 'https://example.com',
+  //     'price': 9.99
+  //   },
+  //   {
+  //     'authors': 'Mary Doe',
+  //     'title': 'Hello Teles Exemplo 2',
+  //     'url': 'https://example2.com',
+  //     'price': 0.99
+  //   }]
+  // })
 }
 
 void main()
