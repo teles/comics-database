@@ -188,6 +188,16 @@ const whereFilters = {
   equals: (value: string): WhereFilter => (data: string) => data === value
 }
 
+const checkWhereFilter = (filters: WhereCondition|string, data: string): boolean => {
+  if(typeof filters === 'string') {
+    filters = {equals: filters}
+  }
+  return Object.entries(filters).every(([key, expected]) => {
+    const filter = whereFilters[key as WhereFilterKey](expected)
+    return filter(data)
+  })
+}
+
 type WhereFilterKey = keyof typeof whereFilters;
 
 type WhereCondition = {
@@ -218,7 +228,7 @@ export async function findFirst<RecordType extends Record<string, any>>(options:
       spreadsheetId: process.env.SPREADSHEET_ID,
       range
     })
-    const rowIndex = response.data.values?.findIndex(row => row[0] === where[columns[0]])
+    const rowIndex = response.data.values?.findIndex(row => checkWhereFilter(where[columns[0]] as WhereCondition|string, row[0] as string))
     if(rowIndex === -1 || !rowIndex) {
       return undefined
     }
@@ -259,7 +269,7 @@ export async function findMany<RecordType extends Record<string, any>>(options: 
       range
     })
     const rowIndexes = response.data.values?.reduce((acc: number[], row, index) => {
-      if(row[0] === where[columns[0]]) {
+      if(checkWhereFilter(where[columns[0]] as WhereCondition|string, row[0] as string)) {
         acc.push(index)
       }
       return acc
@@ -307,7 +317,7 @@ const main = async () => {
       table: SheetsTables.comicboom,
       where: {
         title: {
-          contains: 'Hello'
+          contains: 'Teles'
         },
         price: '9.99'
       },
