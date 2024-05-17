@@ -181,7 +181,22 @@ interface RowSet<RecordType extends Record<string, string>> {
   fields: Partial<RecordType>
 }
 
-type WhereClause<RecordType> = Partial<{[column in keyof RecordType]: string}>
+type WhereFilter = (value: string) => boolean;
+
+const whereFilters = {
+  contains: (value: string): WhereFilter => (data: string) => data.includes(value),
+  equals: (value: string): WhereFilter => (data: string) => data === value
+}
+
+type WhereFilterKey = keyof typeof whereFilters;
+
+type WhereCondition = {
+  [key in WhereFilterKey]?: string;
+};
+
+type WhereClause<RecordType> = {
+  [column in keyof RecordType]?: WhereCondition | string;
+};
 type SelectClause<RecordType> = Partial<{[column in keyof RecordType]: boolean}>
 
 /**
@@ -291,7 +306,9 @@ const main = async () => {
     {
       table: SheetsTables.comicboom,
       where: {
-        title: 'Hello World',
+        title: {
+          contains: 'Hello'
+        },
         price: '9.99'
       },
       select: {
