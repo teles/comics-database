@@ -182,6 +182,7 @@ interface RowSet<RecordType extends Record<string, string>> {
 }
 
 type WhereClause<RecordType> = Partial<{[column in keyof RecordType]: string}>
+type SelectClause<RecordType> = Partial<{[column in keyof RecordType]: boolean}>
 
 /**
  * Finds the first record in a table that matches the specified conditions.
@@ -191,7 +192,7 @@ type WhereClause<RecordType> = Partial<{[column in keyof RecordType]: string}>
  * @param options.where - The conditions to match the record against.
  * @returns A promise that resolves to an array of values representing the first matching record, or undefined if no record is found.
  */
-export async function findFirst<RecordType extends Record<string, any>>(options: { tableName: string, where: WhereClause<RecordType> }): Promise<RowSet<RecordType>|undefined>{
+export async function findFirst<RecordType extends Record<string, any>>(options: { tableName: string, where: WhereClause<RecordType>, select?: SelectClause<RecordType> }): Promise<RowSet<RecordType>|undefined>{
   const { tableName, where } = options
   const headers = await getHeaders({ tableName })
   const columns = Object.keys(where) as (keyof RecordType)[]
@@ -215,7 +216,8 @@ export async function findFirst<RecordType extends Record<string, any>>(options:
     if(!rowResponse.data.values) {
       return undefined
     }
-    const fields = combine<RecordType>(rowResponse.data.values[0] as string[], headers)
+    const selectedHeaders = headers.filter(header => options.select ? options.select[header.name] : true)
+    const fields = combine<RecordType>(rowResponse.data.values[0] as string[], selectedHeaders)
     return { range: rowRange, fields }
   } catch(error) {
     console.error('Error finding data' + error) // eslint-disable-line
@@ -230,8 +232,8 @@ export async function findFirst<RecordType extends Record<string, any>>(options:
  * @param options.where - The conditions to filter the records.
  * @returns A promise that resolves to an array of matching records.
  */
-export async function findMany<RecordType extends Record<string, any>>(options: { tableName: string, where: WhereClause<RecordType> }): Promise<RowSet<RecordType>[]> {
-  const { tableName, where } = options
+export async function findMany<RecordType extends Record<string, any>>(options: { tableName: string, where: WhereClause<RecordType>, select?: SelectClause<RecordType> }): Promise<RowSet<RecordType>[]> {
+  const { tableName, where, select } = options
   const headers = await getHeaders({ tableName })
   const columns = Object.keys(where) as (keyof RecordType)[]
   const header = headers.find(header => header.name === columns[0])
@@ -259,8 +261,9 @@ export async function findMany<RecordType extends Record<string, any>>(options: 
       const values = rowResponse.data.values
       return {range: rowRange, values}
     }))
-    return rowsResponse.map(({range, values}) => {
-      const fields = combine<RecordType>(values ? values[0] as string[] : [], headers)
+    return rowsResponse.map(({range, values}) => {  
+      const selectedHeaders = headers.filter(header => select ? select[header.name] : true)    
+      const fields = combine<RecordType>(values ? values[0] as string[] : [], selectedHeaders)
       return { range, fields }
     })
   } catch(error) {
@@ -278,10 +281,10 @@ const main = async () => {
   }
 
   interface ComicBoomTable {
-      authors: string
-      title: string
-      url: string
-      price: number
+    authors: string
+    title: string
+    url: string
+    price: number
   }
 
   const hello = await findMany<ComicBoomTable>(
@@ -290,6 +293,10 @@ const main = async () => {
       where: {
         title: 'Hello World',
         price: '9.99'
+      },
+      select: {
+        title: true,
+        price: true
       }
     }
   )
