@@ -27,7 +27,7 @@ interface InsertOptions<TableName extends string> {
     /**
      * The name of the table where the data will be inserted.
      */
-    tableName?: TableName;
+    table?: TableName;
 
     /**
      * The range where the data will be inserted.
@@ -50,13 +50,13 @@ async function write<TableName extends string>(options: InsertOptions<TableName>
     throw new Error('Missing SPREADSHEET_ID env variable')
   }
 
-  const { range, values, tableName } = options
-  const rangeWithSheet = `${tableName}!${range}`
+  const { range, values, table } = options
+  const rangeWithSheet = `${table}!${range}`
 
   try {
     const request = {
       spreadsheetId: process.env.SPREADSHEET_ID,
-      range: tableName ? rangeWithSheet : range,
+      range: table ? rangeWithSheet : range,
       valueInputOption: 'RAW',
       requestBody: {
         values
@@ -71,29 +71,29 @@ async function write<TableName extends string>(options: InsertOptions<TableName>
 }
 
 /**
- * Inserts records into a Google Sheets spreadsheet.
- * @param options - The options for inserting records.
+ * Inserts data into a Google Sheets spreadsheet.
+ * @param options - The options for inserting data.
  * @throws Error if the SPREADSHEET_ID environment variable is missing.
  */
-export async function insert<TableName extends string, RecordType extends Record<string, any>>(options: { tableName: TableName, records: RecordType[] }) {
-  const { tableName, records } = options
+export async function insert<TableName extends string, RecordType extends Record<string, any>>(options: { table: TableName, data: RecordType[] }) {
+  const { table, data } = options
 
   try {
     const response = await sheets.spreadsheets.values.get({
       spreadsheetId: process.env.SPREADSHEET_ID,
-      range: `${tableName}!${alphabet[0]}:${alphabet[alphabet.length - 1]}`
+      range: `${table}!${alphabet[0]}:${alphabet[alphabet.length - 1]}`
     })
 
     if(!response.data.values) {
       throw new Error('No data found in the sheet.')
     }
     const lastLine = response.data.values.length
-    const headers = await getHeaders({ tableName })
+    const headers = await getHeaders({ table })
 
-    const valuesFromRecords = records.map(record => decombine(record, headers))
+    const valuesFromRecords = data.map(record => decombine(record, headers))
     const range = `A${lastLine + 1}:${indexToColumn(headers.length - 1)}${lastLine + valuesFromRecords.length}`
     await write({
-      tableName,
+      table,
       range,
       values: valuesFromRecords
     })
@@ -115,15 +115,15 @@ interface SheetHeaders {
 /**
  * Retrieves the headers of a specified table from a Google Sheets document.
  * @param options - The options for retrieving the headers.
- * @param options.tableName - The name of the table.
+ * @param options.table - The name of the table.
  * @returns A promise that resolves to an array of SheetHeaders representing the headers of the table.
  */
-async function getHeaders<TableName extends string>(options: {tableName: TableName}): Promise<SheetHeaders[]> {
-  const { tableName } = options    
+async function getHeaders<TableName extends string>(options: {table: TableName}): Promise<SheetHeaders[]> {
+  const { table } = options    
   try {
     const response = await sheets.spreadsheets.values.get({
       spreadsheetId: process.env.SPREADSHEET_ID,
-      range: `${tableName}!1:1`
+      range: `${table}!1:1`
     })
 
     const values = response.data.values
@@ -160,18 +160,18 @@ const decombine = <RecordType extends Record<string, string>>(record: RecordType
 }
 
 /**
- * Combines an array of records with an array of headers to create a new record.
+ * Combines an array of data with an array of headers to create a new record.
  * 
  * @template RecordType - The type of the resulting record.
- * @param {any[]} records - The array of records.
+ * @param {any[]} data - The array of data.
  * @param {SheetHeaders[]} headers - The array of headers.
  * @returns {RecordType} - The combined record.
  */
-const combine = <RecordType extends Record<string, string>>(records: string[], headers: SheetHeaders[]): RecordType => {
+const combine = <RecordType extends Record<string, string>>(data: string[], headers: SheetHeaders[]): RecordType => {
   return headers.reduce((acc: RecordType, header) => {
     const headerByIndex = headers.find(h => h.index === header.index)
     const key = headerByIndex?.name as keyof RecordType
-    acc[key] = records[header.index] as RecordType[keyof RecordType]
+    acc[key] = data[header.index] as RecordType[keyof RecordType]
     return acc
   }, {} as RecordType)
 }
@@ -188,16 +188,16 @@ type SelectClause<RecordType> = Partial<{[column in keyof RecordType]: boolean}>
  * Finds the first record in a table that matches the specified conditions.
  * 
  * @param options - The options for finding the record.
- * @param options.tableName - The name of the table to search in.
+ * @param options.table - The name of the table to search in.
  * @param options.where - The conditions to match the record against.
  * @returns A promise that resolves to an array of values representing the first matching record, or undefined if no record is found.
  */
-export async function findFirst<RecordType extends Record<string, any>>(options: { tableName: string, where: WhereClause<RecordType>, select?: SelectClause<RecordType> }): Promise<RowSet<RecordType>|undefined>{
-  const { tableName, where } = options
-  const headers = await getHeaders({ tableName })
+export async function findFirst<RecordType extends Record<string, any>>(options: { table: string, where: WhereClause<RecordType>, select?: SelectClause<RecordType> }): Promise<RowSet<RecordType>|undefined>{
+  const { table, where } = options
+  const headers = await getHeaders({ table })
   const columns = Object.keys(where) as (keyof RecordType)[]
   const header = headers.find(header => header.name === columns[0])
-  const range = `${tableName}!${header?.column}:${header?.column}`
+  const range = `${table}!${header?.column}:${header?.column}`
   try {    
     const response = await sheets.spreadsheets.values.get({
       spreadsheetId: process.env.SPREADSHEET_ID,
@@ -207,7 +207,7 @@ export async function findFirst<RecordType extends Record<string, any>>(options:
     if(rowIndex === -1 || !rowIndex) {
       return undefined
     }
-    const rowRange = `${tableName}!A${rowIndex + 1}:${indexToColumn(headers.length - 1)}${rowIndex + 1}`
+    const rowRange = `${table}!A${rowIndex + 1}:${indexToColumn(headers.length - 1)}${rowIndex + 1}`
     const rowResponse = await sheets.spreadsheets.values.get({
       spreadsheetId: process.env.SPREADSHEET_ID,
       range: rowRange
@@ -225,19 +225,19 @@ export async function findFirst<RecordType extends Record<string, any>>(options:
 }
 
 /**
- * Retrieves multiple records from a specified table based on the provided conditions.
+ * Retrieves multiple data from a specified table based on the provided conditions.
  *
- * @param options - The options for finding the records.
- * @param options.tableName - The name of the table to search in.
- * @param options.where - The conditions to filter the records.
- * @returns A promise that resolves to an array of matching records.
+ * @param options - The options for finding the data.
+ * @param options.table - The name of the table to search in.
+ * @param options.where - The conditions to filter the data.
+ * @returns A promise that resolves to an array of matching data.
  */
-export async function findMany<RecordType extends Record<string, any>>(options: { tableName: string, where: WhereClause<RecordType>, select?: SelectClause<RecordType> }): Promise<RowSet<RecordType>[]> {
-  const { tableName, where, select } = options
-  const headers = await getHeaders({ tableName })
+export async function findMany<RecordType extends Record<string, any>>(options: { table: string, where: WhereClause<RecordType>, select?: SelectClause<RecordType> }): Promise<RowSet<RecordType>[]> {
+  const { table, where, select } = options
+  const headers = await getHeaders({ table })
   const columns = Object.keys(where) as (keyof RecordType)[]
   const header = headers.find(header => header.name === columns[0])
-  const range = `${tableName}!${header?.column}:${header?.column}`
+  const range = `${table}!${header?.column}:${header?.column}`
   try {
     const response = await sheets.spreadsheets.values.get({
       spreadsheetId: process.env.SPREADSHEET_ID,
@@ -252,7 +252,7 @@ export async function findMany<RecordType extends Record<string, any>>(options: 
     if(!rowIndexes || rowIndexes.length === 0) {
       return []
     }
-    const rowsRange = rowIndexes.map(index => `${tableName}!A${index + 1}:${indexToColumn(headers.length - 1)}${index + 1}`)
+    const rowsRange = rowIndexes.map(index => `${table}!A${index + 1}:${indexToColumn(headers.length - 1)}${index + 1}`)
     const rowsResponse = await Promise.all(rowsRange.map(async rowRange => {
       const rowResponse = await sheets.spreadsheets.values.get({
         spreadsheetId: process.env.SPREADSHEET_ID,
@@ -289,35 +289,34 @@ const main = async () => {
 
   const hello = await findMany<ComicBoomTable>(
     {
-      tableName: SheetsTables.comicboom,
+      table: SheetsTables.comicboom,
       where: {
         title: 'Hello World',
         price: '9.99'
       },
       select: {
-        title: true,
-        price: true
+        title: true
       }
     }
   )
 
   console.log(hello) // eslint-disable-line
 
-  // void insert<SheetsTables, ComicBoomTable>({
-  //   tableName: SheetsTables.comicboom,
-  //   records: [{
-  //     'authors': 'John Doe',
-  //     'title': 'Hello World',
-  //     'url': 'https://example.com',
-  //     'price': 9.99
-  //   },
-  //   {
-  //     'authors': 'Mary Doe',
-  //     'title': 'Hello Teles Exemplo 2',
-  //     'url': 'https://example2.com',
-  //     'price': 0.99
-  //   }]
-  // })
+  void insert<SheetsTables, ComicBoomTable>({
+    table: SheetsTables.comicboom,
+    data: [{
+      'authors': 'John Doe',
+      'title': 'Hello World',
+      'url': 'https://example.com',
+      'price': 9.99
+    },
+    {
+      'authors': 'Mary Doe',
+      'title': 'Hello Teles Exemplo 2',
+      'url': 'https://example2.com',
+      'price': 0.99
+    }]
+  })
 }
 
 void main()
